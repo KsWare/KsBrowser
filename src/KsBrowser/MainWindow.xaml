@@ -1,0 +1,119 @@
+﻿<Window 
+	x:Class="KsWare.KsBrowser.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:ksBrowser="clr-namespace:KsWare.KsBrowser"
+	xmlns:controls="clr-namespace:KsWare.KsBrowser.Controls"
+	xmlns:ksc="http://ksware.de/Presentation/Controls"
+	mc:Ignorable="d"
+	d:DataContext="{d:DesignInstance ksBrowser:MainWindowVM, IsDesignTimeCreatable=False}"
+	Title="{Binding CurrentTab.WebContentPresenter.DocumentTitle}" Height="450" Width="800">
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KsBrowser;component/Controls/DownloadOperationView.xaml"/>
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+	</Window.Resources>
+	<DockPanel>
+		<Menu DockPanel.Dock="Top">
+			<MenuItem Header="_File">
+
+			</MenuItem>
+			<MenuItem Header="_Tests">
+				<MenuItem Header="Crash Browser" Command="{Binding CurrentTab.WebContentPresenter.Modules[Test].CrashBrowserAction}"/>
+				<MenuItem Header="Emulate Mouse Wheel" Command="{Binding CurrentTab.WebContentPresenter.Controller.ClickAction}"/>
+			</MenuItem>
+			<MenuItem Header="_Help">
+				<MenuItem Header="_About..."/>
+			</MenuItem>
+		</Menu>
+		
+		<DockPanel DockPanel.Dock="Top">
+			<FrameworkElement.Resources>
+				<Style TargetType="Button">
+					<Setter Property="Width" Value="24" />
+					<Setter Property="Height" Value="24" />
+				</Style>
+			</FrameworkElement.Resources>			
+			<StackPanel Orientation="Horizontal">
+				<Button Content="Ù" FontFamily="Wingdings 3" Command="{Binding CurrentTab.WebContentPresenter.NavigateBackCommand}" ToolTip="Back"/>
+				<Button Content="Ú" FontFamily="Wingdings 3" Command="{Binding CurrentTab.WebContentPresenter.NavigateForwardCommand}" ToolTip="Forward"/>
+				<Button Command="{Binding CurrentTab.WebContentPresenter.RefreshCommand}"  ToolTip="Refresh">
+					<TextBlock Text="P" FontFamily="Wingdings 3" FontSize="14" FontWeight="Bold" RenderTransformOrigin="0.5 0.5" >
+						<TextBlock.RenderTransform>
+							<RotateTransform Angle="91"/>
+						</TextBlock.RenderTransform>
+					</TextBlock>
+				</Button>
+			</StackPanel>
+			<StackPanel DockPanel.Dock="Right">
+				<Button Visibility="Collapsed" Content="Go" Command="{Binding CurrentTab.WebContentPresenter.NavigateCommand}" CommandParameter="{Binding CurrentTab.WebContentPresenter.SourceInput}" ToolTip="Navigate"/>
+			</StackPanel>
+			<TextBox Text="{Binding CurrentTab.WebContentPresenter.SourceInput}" Padding="0 2 0 0">
+				<TextBox.InputBindings>
+					<KeyBinding Key="Enter" Command="{Binding CurrentTab.WebContentPresenter.NavigateCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TextBox}, Path=Text}" />
+				</TextBox.InputBindings>
+			</TextBox>
+		</DockPanel>
+		<DockPanel>
+			<TreeView DockPanel.Dock="Left" ItemsSource="{Binding Tabs}" ScrollViewer.HorizontalScrollBarVisibility="Auto" Width="200">
+				<TreeView.ItemTemplate>
+					<HierarchicalDataTemplate DataType="{x:Type ksBrowser:BrowserTabItemVM}" ItemsSource="{Binding SubTabs}">
+						<TextBlock Text="{Binding WebContentPresenter.DocumentTitle}"/>
+					</HierarchicalDataTemplate>
+				</TreeView.ItemTemplate>
+			</TreeView>
+			<ksc:DocumentTabControl x:Name="TabControl" ItemsSource="{Binding Tabs}" SelectedItem="{Binding CurrentTab}" TabStripPlacement="Top" >
+			    <TabControl.ItemTemplate>
+			        <DataTemplate DataType="{x:Type ksBrowser:BrowserTabItemVM}">
+						<DockPanel>
+							<DockPanel.InputBindings>
+								<MouseBinding MouseAction="MiddleClick" Command="{Binding CloseAction}"/>
+							</DockPanel.InputBindings>
+							<DockPanel.ToolTip>
+								<StackPanel MaxWidth="250">
+									<TextBlock Text="{Binding WebContentPresenter.DocumentTitle}" TextWrapping="WrapWithOverflow" FontWeight="Bold"/>
+									<TextBlock Text="{Binding WebContentPresenter.Source.Host}"/>
+								</StackPanel>
+							</DockPanel.ToolTip>
+							<!-- <Grid x:Name="Icon" VerticalAlignment="Center" DockPanel.Dock="Left"/> -->
+							<Button 
+								Command="{Binding CloseAction}"
+								Content="r" FontFamily="Webdings" DockPanel.Dock="Right" 
+								Background="Transparent" 
+								BorderBrush="Transparent"
+								Width="16" Height="16"
+								VerticalAlignment="Center"
+								>
+							</Button>
+							<TextBlock Text="{Binding WebContentPresenter.DocumentTitle}" MaxWidth="120" VerticalAlignment="Center"/>
+						</DockPanel>
+			        </DataTemplate>
+		        </TabControl.ItemTemplate>
+		        <TabControl.ContentTemplate>
+			        <DataTemplate DataType="{x:Type ksBrowser:BrowserTabItemVM}">
+						<DockPanel>
+							<ListBox ItemsSource="{Binding WebContentPresenter.DownloadManager.DownloadOperations}" DockPanel.Dock="Bottom" 
+							>
+								<ListBox.ItemsPanel>
+									<ItemsPanelTemplate>
+										<StackPanel IsItemsHost="True" Orientation="Horizontal"/>
+									</ItemsPanelTemplate>
+								</ListBox.ItemsPanel>
+							</ListBox>
+							<controls:WebView2Controller DataContext="{Binding WebContentPresenter}"/>
+						</DockPanel>
+			        </DataTemplate>
+		        </TabControl.ContentTemplate>
+			    <ksc:DocumentTabControl.NewTabButtonTemplate>
+				    <ControlTemplate TargetType="Button">
+					    <Button x:Name="NewTabButton" Content="Ê" FontFamily="Wingdings 2" MinWidth="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" Command="{Binding NewTabCommand}" Margin="0 2 0 -1"/>
+				    </ControlTemplate>
+			    </ksc:DocumentTabControl.NewTabButtonTemplate>
+	        </ksc:DocumentTabControl>
+		</DockPanel>
+    </DockPanel>
+</Window>

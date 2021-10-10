@@ -1,0 +1,8 @@
+Verteilen einer WebView2-App und der WebView2-Runtime
+https://docs.microsoft.com/de-de/microsoft-edge/webview2/concepts/distribution#deploying-the-evergreen-webview2-runtime
+
+Bewährte Methoden für die Entwicklung mit WebView2
+https://docs.microsoft.com/de-de/microsoft-edge/webview2/concepts/developer-guide
+
+WebView2 Samples
+https://github.com/MicrosoftEdge/WebView2Samples

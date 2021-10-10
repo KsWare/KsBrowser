@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>KsWare.KsBrowser</RootNamespace>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="TabPanelEx - Copy.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="app.ico" />
+    <None Remove="KsBrowser.csproj.DotSettings" />
+    <None Remove="Resources\broken-glass-sun-clouds.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="KsWare.Presentation" Version="0.21.0-alpha" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.992.28" />
+    <PackageReference Include="Microsoft.Web.WebView2.DevToolsProtocolExtension" Version="1.0.824" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KsWare.UI.DocumentTabControl\KsWare.Presentation.DocumentTabControl.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="app.ico" />
+    <Resource Include="Resources\broken-glass-sun-clouds.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Themes\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
+
+</Project>

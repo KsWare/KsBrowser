@@ -1,0 +1,39 @@
+﻿<ResourceDictionary 
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+	xmlns:converter="clr-namespace:KsWare.KsBrowser.Converter"
+	xmlns:modules="clr-namespace:KsWare.KsBrowser.WebView2Modules"
+	mc:Ignorable="d">
+
+	<DataTemplate DataType="{x:Type modules:DownloadOperationVM}">
+		<StackPanel x:Name="RootPanel" Width="200">
+			<TextBlock Text="{Binding FileName}" FontWeight="Bold" Opacity="0.7"/>
+			<TextBlock x:Name="Progress"><Run Text="{Binding PercentComplete}"/><Run Text=" "/><Run Text="{Binding EstimatedTimeLeft, StringFormat=g}"/></TextBlock>
+			<TextBlock x:Name="Completed"><Run Text="{Binding EstimatedTotalTime, StringFormat=g}"/></TextBlock>
+			<TextBlock x:Name="InterruptReason" Text="{Binding InterruptReason, Converter={converter:InterruptReasonConverter}}" ToolTip="{Binding InterruptReason, Converter={converter:InterruptReasonConverter}}" TextTrimming="CharacterEllipsis"/>
+		</StackPanel>
+		<DataTemplate.Triggers>
+			<DataTrigger Binding="{Binding State}" Value="InProgress">
+				<Setter Property="Background" TargetName="RootPanel" Value="#7FFFFF83"/>
+				<Setter Property="Visibility" TargetName="Progress" Value="Visible"/>
+				<Setter Property="Visibility" TargetName="Completed" Value="Collapsed"/>
+				<Setter Property="Visibility" TargetName="InterruptReason" Value="Collapsed"/>
+			</DataTrigger>
+			<DataTrigger Binding="{Binding State}" Value="Interrupted">
+				<Setter Property="Background" TargetName="RootPanel" Value="#81FD7A7A"/>
+				<Setter Property="Visibility" TargetName="Progress" Value="Collapsed"/>
+				<Setter Property="Visibility" TargetName="Completed" Value="Collapsed"/>
+				<Setter Property="Visibility" TargetName="InterruptReason" Value="Visible"/>
+			</DataTrigger>
+			<DataTrigger Binding="{Binding State}" Value="Completed">
+				<Setter Property="Background" TargetName="RootPanel" Value="#7B7CFF7C"/>
+				<Setter Property="Visibility" TargetName="Progress" Value="Collapsed"/>
+				<Setter Property="Visibility" TargetName="Completed" Value="Visible"/>
+				<Setter Property="Visibility" TargetName="InterruptReason" Value="Collapsed"/>
+			</DataTrigger>
+		</DataTemplate.Triggers>
+	</DataTemplate>
+
+</ResourceDictionary>
