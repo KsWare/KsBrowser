@@ -1,0 +1,8 @@
+nutget: CefSharp.Wpf.NETCore
+
+AnyCPU support
+.csproj
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+

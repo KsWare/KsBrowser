@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Diagnostics;
+using System.Windows;
 
 namespace KsWare.KsBrowser {
 	/// <summary>
@@ -6,6 +7,7 @@ namespace KsWare.KsBrowser {
 	/// </summary>
 	public partial class MainWindow : Window {
 		public MainWindow() {
+			Debug.WriteLine($"new MainWindow");
 			InitializeComponent();
 		}
 	}

@@ -6,6 +6,7 @@
 		/// <inheritdoc />
 		public App() {
 			CatchUnhandledExceptions = false;
+			KsWare.KsBrowser.CefSpecific.AppInit.Init();
 		}
 	}
 }

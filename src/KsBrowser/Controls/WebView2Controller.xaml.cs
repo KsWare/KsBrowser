@@ -19,6 +19,7 @@ namespace KsWare.KsBrowser.Controls {
 		private bool _isControlInVisualTree;
 
 		public WebView2Controller() {
+			Debug.WriteLine($"new WebView2Controller");
 			InitializeComponent();
 			Debug.WriteLine($"WebView2Controller InitializeComponent");
 

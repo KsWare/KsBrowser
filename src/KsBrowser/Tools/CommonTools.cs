@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using System.Windows.Threading;
+using KsWare.Presentation;
 
 namespace KsWare.KsBrowser.Tools {
 
@@ -48,6 +51,16 @@ namespace KsWare.KsBrowser.Tools {
 			}
 
 			return uri;
+		}
+
+		/// <summary>
+		/// Wait for render tasks done.
+		/// </summary>
+		/// <remarks>
+		/// This lets create the UI controls for data bound templates.
+		/// </remarks>
+		public static void WaitForRender() {
+			ApplicationDispatcher.Invoke(DispatcherPriority.Render, () => {});
 		}
 	}
 }

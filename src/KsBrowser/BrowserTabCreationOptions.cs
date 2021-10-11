@@ -6,8 +6,8 @@ namespace KsWare.KsBrowser {
 
 	public class BrowserTabCreationOptions : ITabCreationOptions {
 
-		public BrowserTabCreationOptions(object internalArguments, TabItemVM referrer) {
-			InternalArguments = internalArguments;
+		public BrowserTabCreationOptions(object newWindowRequest, TabItemVM referrer) {
+			NewWindowRequest = newWindowRequest;
 			Referrer = referrer;
 		}
 
@@ -18,7 +18,7 @@ namespace KsWare.KsBrowser {
 		
 		public TabItemVM Referrer { get; }
 
-		public object InternalArguments { get; }
+		public object NewWindowRequest { get; }
 
 		public Uri NavigationUri { get; }
 	}

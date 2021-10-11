@@ -50,9 +50,9 @@
 				</Button>
 			</StackPanel>
 			<StackPanel DockPanel.Dock="Right">
-				<Button Visibility="Collapsed" Content="Go" Command="{Binding CurrentTab.WebContentPresenter.NavigateCommand}" CommandParameter="{Binding CurrentTab.WebContentPresenter.SourceInput}" ToolTip="Navigate"/>
+				<Button Visibility="Collapsed" Content="Go" Command="{Binding CurrentTab.WebContentPresenter.NavigateCommand}" CommandParameter="{Binding CurrentTab.WebContentPresenter.Address}" ToolTip="Navigate"/>
 			</StackPanel>
-			<TextBox Text="{Binding CurrentTab.WebContentPresenter.SourceInput}" Padding="0 2 0 0">
+			<TextBox Text="{Binding CurrentTab.WebContentPresenter.Address}" Padding="0 2 0 0">
 				<TextBox.InputBindings>
 					<KeyBinding Key="Enter" Command="{Binding CurrentTab.WebContentPresenter.NavigateCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TextBox}, Path=Text}" />
 				</TextBox.InputBindings>
@@ -104,7 +104,16 @@
 									</ItemsPanelTemplate>
 								</ListBox.ItemsPanel>
 							</ListBox>
-							<controls:WebView2Controller DataContext="{Binding WebContentPresenter}"/>
+							<ContentControl Content="{Binding WebContentPresenter}">
+								<ContentControl.Resources>
+									<DataTemplate DataType="{x:Type ksBrowser:WebView2ControllerVM}">
+										<controls:WebView2Controller />
+									</DataTemplate>
+									<DataTemplate DataType="{x:Type ksBrowser:CefSharpControllerVM}">
+										<controls:CefSharpController/>
+									</DataTemplate>
+								</ContentControl.Resources>
+							</ContentControl>
 						</DockPanel>
 			        </DataTemplate>
 		        </TabControl.ContentTemplate>

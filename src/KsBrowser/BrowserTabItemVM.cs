@@ -13,14 +13,15 @@ namespace KsWare.KsBrowser {
 			WebContentPresenter.CloseRequested.add = WebContentPresenter_CloseRequested;
 		}
 
-		public WebView2ControllerVM WebContentPresenter { get; [UsedImplicitly] private set; }
+		// public WebView2ControllerVM WebContentPresenter { get; [UsedImplicitly] private set; }
+		public CefSharpControllerVM WebContentPresenter { get; [UsedImplicitly] private set; }
 
 		/// <inheritdoc />
 		protected override void OnTabCreated(ITabCreationOptions options) {
 			base.OnTabCreated(options);
 
 			if (options is BrowserTabCreationOptions opt) {
-				if (opt.InternalArguments != null) WebContentPresenter.Initialize(opt.InternalArguments);
+				if (opt.NewWindowRequest != null) WebContentPresenter.Initialize(opt.NewWindowRequest);
 				else if (opt.NavigationUri != null) WebContentPresenter.Initialize(opt.NavigationUri);
 			}
 		}

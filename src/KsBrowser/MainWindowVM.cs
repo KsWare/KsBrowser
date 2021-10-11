@@ -37,12 +37,9 @@ namespace KsWare.KsBrowser {
 		public ListVM<TabItemVM> Tabs { get => Fields.GetValue<ListVM<TabItemVM>>(); set => Fields.SetValue(value); }
 
 		[Hierarchy(HierarchyType.Reference)]
-		public TabItemVM CurrentTab { get => Fields.GetValue<TabItemVM>(); set => Fields.SetValue(value); }
-
+		public BrowserTabItemVM CurrentTab { get => Fields.GetValue<BrowserTabItemVM>(); set => Fields.SetValue(value); }
 
 		public IEventSource<EventHandler<TabCreatedEventArgs>> TabCreatedEvent => EventSources.Get<EventHandler<TabCreatedEventArgs>>(nameof(TabCreatedEvent));
-
-		public CoreWebView2Environment BrowserEnvironment { get; set; }
 
 		public ICommand NewTabCommand { get; }
 
@@ -55,6 +52,7 @@ namespace KsWare.KsBrowser {
 			var newTab = new BrowserTabItemVM(this);
 			Tabs.Add(newTab);
 			CurrentTab = newTab;
+			CommonTools.WaitForRender(); // create templates and connect the view with the controller view model
 			EventManager.Raise(EventSources.Get<EventHandler<TabCreatedEventArgs>>(nameof(TabCreatedEvent)), new TabCreatedEventArgs(newTab, new BrowserTabCreationOptions(uri)));
 		}
 
@@ -71,16 +69,19 @@ namespace KsWare.KsBrowser {
 			}
 			Tabs.Add(newTab);
 			CurrentTab = newTab;
+			CommonTools.WaitForRender(); // create templates and connect the view with the controller view model
 			EventManager.Raise(EventSources.Get<EventHandler<TabCreatedEventArgs>>(nameof(TabCreatedEvent)), new TabCreatedEventArgs(newTab, options));
 		}
 
+		/// <inheritdoc/>
+		/// Implements <seealso cref="ITabHostVM.CloseTab"/>
 		public void CloseTab(TabItemVM tabItemVM) {
 			tabItemVM.NotifyClosing();
 			var idx = Tabs.IndexOf(tabItemVM);
 			Tabs.RemoveAt(idx);
 			if (idx == Tabs.Count) idx--;
 			if (idx >= 0) {
-				CurrentTab = Tabs[idx];
+				CurrentTab = (BrowserTabItemVM)Tabs[idx];
 			}
 			else {
 				//last tab removed

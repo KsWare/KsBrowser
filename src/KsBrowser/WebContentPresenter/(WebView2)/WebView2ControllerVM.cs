@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 using JetBrains.Annotations;
 using KsWare.KsBrowser.Base;
 using KsWare.KsBrowser.Tools;
@@ -25,13 +26,13 @@ namespace KsWare.KsBrowser {
 
 		/// <inheritdoc />
 		public WebView2ControllerVM() {
+			Debug.WriteLine($"new WebView2ControllerVM");
 			RegisterChildren(() => this);
 
 			NavigateBackCommand = new RelayCommand(() => WebView2?.GoBack(), () => WebView2?.CanGoBack??false);
 			NavigateForwardCommand = new RelayCommand(() => WebView2?.GoForward(), () => WebView2?.CanGoForward??false);
 
 			Modules.Add("Test", new TestModuleVM());
-
 		}
 
 		public WebView2 WebView2 { get => Fields.GetValue<WebView2>(); private set => Fields.SetValue(value); }
@@ -45,16 +46,12 @@ namespace KsWare.KsBrowser {
 		public DownloadManagerVM DownloadManager { get; [UsedImplicitly] private set; }
 		public CookieManagerVM CookieManager { get; [UsedImplicitly] private set; }
 		public CoreControllerVM Controller { get; [UsedImplicitly] private set; }
-
-		public string DocumentTitle { get => Fields.GetValue<string>(); set => Fields.SetValue(value); }
-
-		public string SourceInput { get => Fields.GetValue<string>(); set => Fields.SetValue(value); }
-
+		
 		public Uri Source { get => Fields.GetValue<Uri>(); set => Fields.SetValue(value); }
 
 		public Dictionary<string, IObjectVM> Modules { get; }= new Dictionary<string, IObjectVM>();
 
-		private async void DoNavigate(object parameter) {
+		protected override async void DoNavigate(object parameter) {
 			var uri = await CommonTools.EnsureUrlAsync($"{parameter}");
 			await NavigateToUriAsync(uri);
 		}
@@ -184,7 +181,7 @@ namespace KsWare.KsBrowser {
 
 			var source = CoreWebView2.Source;
 			// Debug.WriteLine($"    SourceChanged {(e.IsNewDocument ? "NewDocument" : "")} {source}");
-			SourceInput = source;
+			Address = source;
 			Uri.TryCreate(source, UriKind.Absolute, out var sourceUri); //TODO handle error
 			Source = sourceUri;
 		}
@@ -210,7 +207,7 @@ namespace KsWare.KsBrowser {
 				await OnCoreWebView2CreatedAsync();
 			}
 			WebView2.CoreWebView2.Navigate(uri.AbsoluteUri);
-			SourceInput = uri.ToString();
+			Address = uri.ToString();
 		}
 
 		private async Task<CoreWebView2Environment> CreateCoreWebView2EnvironmentAsync(string profileName) {
@@ -290,8 +287,8 @@ namespace KsWare.KsBrowser {
 
 			// (B) new tab
 			//TabHost.CreateNewTab(new BrowserTabCreationOptions(e, this));
-			EventManager.Raise<EventHandler<NewWindowRequestedEventArgs>, NewWindowRequestedEventArgs>(LazyWeakEventStore, nameof(NewWindowRequested), new Lazy<NewWindowRequestedEventArgs>(()=>new NewWindowRequestedEventArgs(new InternalNewWindowRequestedEventArgs(e, this))));
-			// => newTAB.OnNew(...)
+			EventManager.Raise<EventHandler<NewWindowRequestedEventArgs>, NewWindowRequestedEventArgs>(LazyWeakEventStore, nameof(NewWindowRequested), new Lazy<NewWindowRequestedEventArgs>(()=>new NewWindowRequestedEventArgs(new PrivateNewWindowRequestedEventArgs(e, this))));
+			// => newTAB.Initialize(...)
 
 			// (C) new window (this process)
 			// Shell.NewWindow(this, e);
@@ -303,16 +300,14 @@ namespace KsWare.KsBrowser {
 			// this easy, do nothing ;-) 
 		}
 
-		public IEventSource<EventHandler<CloseRequestedEventArgs>> CloseRequested => LazyWeakEventStore.Value.Get<EventHandler<CloseRequestedEventArgs>>();
-		public IEventSource<EventHandler<NewWindowRequestedEventArgs>> NewWindowRequested => LazyWeakEventStore.Value.Get<EventHandler<NewWindowRequestedEventArgs>>();
 
 		public override async void Initialize(object parameter) {
 			switch (parameter) {
 				case null:
 					throw new ArgumentNullException(nameof(parameter));
-				case InternalNewWindowRequestedEventArgs args: {
+				case PrivateNewWindowRequestedEventArgs args: {
 					Debug.WriteLine($"InitializeNewPresenter NewWindowRequested");
-					if (args.Referrer == null) throw new ArgumentNullException(nameof(InternalNewWindowRequestedEventArgs.Referrer));
+					if (args.Referrer == null) throw new ArgumentNullException(nameof(PrivateNewWindowRequestedEventArgs.Referrer));
 
 					var environment = args.Referrer.WebView2.CoreWebView2.Environment;
 					await WebView2.EnsureCoreWebView2Async(environment);
@@ -332,9 +327,9 @@ namespace KsWare.KsBrowser {
 			}
 		}
 
-		private class InternalNewWindowRequestedEventArgs {
+		private class PrivateNewWindowRequestedEventArgs {
 
-			public InternalNewWindowRequestedEventArgs(CoreWebView2NewWindowRequestedEventArgs args, WebView2ControllerVM referrer) {
+			public PrivateNewWindowRequestedEventArgs(CoreWebView2NewWindowRequestedEventArgs args, WebView2ControllerVM referrer) {
 				Referrer = referrer;
 				CoreArguments = args;
 				Deferral = args.GetDeferral();

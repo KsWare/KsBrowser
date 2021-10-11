@@ -1,0 +1,19 @@
+﻿<UserControl 
+	x:Name="Root"
+	x:Class="KsWare.KsBrowser.Controls.CefSharpController"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:ksBrowser="clr-namespace:KsWare.KsBrowser"
+	xmlns:input="clr-namespace:KsWare.Presentation.Input"
+	xmlns:wpf="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
+	mc:Ignorable="d" 
+	d:DesignHeight="915.287" d:DesignWidth="1438.4"
+	d:DataContext="{d:DesignInstance ksBrowser:WebView2ControllerVM, IsDesignTimeCreatable=False}"
+>
+	<UserControl.Background>
+		<ImageBrush ImageSource="/KsBrowser;component/Resources/broken-glass-sun-clouds.jpg" Stretch="UniformToFill"/>
+	</UserControl.Background>
+	<wpf:ChromiumWebBrowser Name="BrowserControl" />
+</UserControl>
