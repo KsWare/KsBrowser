@@ -35,7 +35,7 @@ namespace KsWare.KsBrowser.CefSpecific {
 			NewWindowRequested?.Invoke(this, args);
 			noJavascriptAccess = args.NoJavascriptAccess;
 			newBrowser = args.NewBrowser;
-			return args.Handled;
+			return args.Handled; 
 			// System.Exception: 'returning true cancels popup creation,
 			// if you return true newBrowser should be set to null.Previously no exception was thrown in this instance,
 			// this exception has been added to reduce the number of support requests from people returning true and
