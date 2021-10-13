@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
-    <RootNamespace>KsWare.Presentation.Controls</RootNamespace>
+    <RootNamespace>KsWare.Presentation</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,9 +1,9 @@
 ﻿using JetBrains.Annotations;
-using KsWare.Presentation.Controls;
+using KsWare.Presentation.ViewModels;
 
 namespace KsWare.KsBrowser {
 
-	public class BrowserTabItemVM : TabItemVM {
+	public class BrowserTabItemVM : ChromeTabItemVM {
 
 		public BrowserTabItemVM(ITabHostVM tabHost = null, BrowserTabItemVM referrer = null) : base(tabHost) {
 			ParentTab = referrer;

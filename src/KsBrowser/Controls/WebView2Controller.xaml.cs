@@ -19,9 +19,9 @@ namespace KsWare.KsBrowser.Controls {
 		private bool _isControlInVisualTree;
 
 		public WebView2Controller() {
-			Debug.WriteLine($"new WebView2Controller");
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] new WebView2Controller");
 			InitializeComponent();
-			Debug.WriteLine($"WebView2Controller InitializeComponent");
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] WebView2Controller InitializeComponent");
 
 			DataContextChanged += OnDataContextChanged;
 
@@ -29,7 +29,7 @@ namespace KsWare.KsBrowser.Controls {
 		}
 
 		private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e) {
-			Debug.WriteLine($"WebView2Controller DataContextChanged {e.NewValue?.GetType().Name??"null"}");
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] WebView2Controller DataContextChanged {e.NewValue?.GetType().Name??"null"}");
 			if (e.OldValue is WebView2ControllerVM oldVM) {
 				oldVM.NotifyViewChanged(this, new ValueChangedEventArgs<WebView2>(null, WebView2)); // detach WebView2 from old view model
 			}

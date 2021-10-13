@@ -27,10 +27,7 @@
     <PackageReference Include="KsWare.Presentation" Version="0.21.0-alpha" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.992.28" />
     <PackageReference Include="Microsoft.Web.WebView2.DevToolsProtocolExtension" Version="1.0.824" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\KsWare.UI.DocumentTabControl\KsWare.Presentation.DocumentTabControl.csproj" />
+    <PackageReference Include="WPFChromeTabsMVVM" Version="1.3.4.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,6 +41,10 @@
 
   <ItemGroup>
     <None Include="..\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KsWare.Presentation.ChromeTabControl\KsWare.Presentation.ChromeTabControl.csproj" />
   </ItemGroup>
 
   <ItemGroup>

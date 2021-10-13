@@ -1,4 +1,4 @@
-﻿<Window 
+﻿<controls1:ChromeTabsBaseWindow 
 	x:Class="KsWare.KsBrowser.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -7,6 +7,10 @@
 	xmlns:ksBrowser="clr-namespace:KsWare.KsBrowser"
 	xmlns:controls="clr-namespace:KsWare.KsBrowser.Controls"
 	xmlns:ksc="http://ksware.de/Presentation/Controls"
+	xmlns:chromeTabs="clr-namespace:ChromeTabs;assembly=ChromeTabs"
+	xmlns:converters="clr-namespace:ChromeTabs.Converters;assembly=ChromeTabs"
+	xmlns:demo="clr-namespace:Demo"
+	xmlns:controls1="clr-namespace:KsWare.Presentation.Controls;assembly=KsWare.Presentation.ChromeTabControl"
 	mc:Ignorable="d"
 	d:DataContext="{d:DesignInstance ksBrowser:MainWindowVM, IsDesignTimeCreatable=False}"
 	Title="{Binding CurrentTab.WebContentPresenter.DocumentTitle}" Height="450" Width="800">
@@ -15,6 +19,67 @@
 			<ResourceDictionary.MergedDictionaries>
 				<ResourceDictionary Source="/KsBrowser;component/Controls/DownloadOperationView.xaml"/>
 			</ResourceDictionary.MergedDictionaries>
+
+			<!-- TODO Header style -->
+			<DataTemplate x:Key="ChromeTabHeaderTemplate" DataType="{x:Type ksBrowser:BrowserTabItemVM}">
+				<DockPanel>
+					<DockPanel.InputBindings>
+						<MouseBinding MouseAction="MiddleClick" Command="{Binding CloseAction}"/>
+					</DockPanel.InputBindings>
+					<DockPanel.ToolTip>
+						<StackPanel MaxWidth="250">
+							<TextBlock Text="{Binding WebContentPresenter.DocumentTitle}" TextWrapping="WrapWithOverflow" FontWeight="Bold"/>
+							<TextBlock Text="{Binding WebContentPresenter.Source.Host}"/>
+						</StackPanel>
+					</DockPanel.ToolTip>
+					<!-- <Grid x:Name="Icon" VerticalAlignment="Center" DockPanel.Dock="Left"/> -->
+					<TextBlock Text="{Binding WebContentPresenter.DocumentTitle}" VerticalAlignment="Center"/>
+				</DockPanel>
+			</DataTemplate>
+
+			<DataTemplate DataType="{x:Type ksBrowser:BrowserTabItemVM}">
+				<DockPanel>
+					<ListBox ItemsSource="{Binding WebContentPresenter.DownloadManager.DownloadOperations}" DockPanel.Dock="Bottom" >
+						<ListBox.ItemsPanel>
+							<ItemsPanelTemplate>
+								<StackPanel IsItemsHost="True" Orientation="Horizontal"/>
+							</ItemsPanelTemplate>
+						</ListBox.ItemsPanel>
+					</ListBox>
+					<ContentControl Content="{Binding WebContentPresenter}">
+						<ContentControl.Resources>
+							<DataTemplate DataType="{x:Type ksBrowser:WebView2ControllerVM}">
+								<controls:WebView2Controller />
+							</DataTemplate>
+							<DataTemplate DataType="{x:Type ksBrowser:CefSharpControllerVM}">
+								<controls:CefSharpController/>
+							</DataTemplate>
+						</ContentControl.Resources>
+					</ContentControl>
+				</DockPanel>
+			</DataTemplate>
+
+			<!-- TODO Simplify, so that it is no longer necessary to create a ControlTemplate. -->
+			<ControlTemplate x:Key="ChromeTabControlTemplate" TargetType="{x:Type chromeTabs:ChromeTabControl}">
+				<ControlTemplate.Resources>
+					<converters:TabPersistBehaviorToContentPresenterVisibilityConverter x:Key="TabPersistBehaviorToContentPresenterVisibilityConverter"/>
+					<converters:TabPersistBehaviorToItemHolderVisibilityConverter x:Key="TabPersistBehaviorToItemHolderVisibilityConverter"/>
+				</ControlTemplate.Resources>
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="30"/>
+						<RowDefinition Height="*"/>
+					</Grid.RowDefinitions>
+					<Border Background="{TemplateBinding Background}" BorderThickness="0,0,0,1" BorderBrush="#FF999999" Padding="10,5,10,0" Grid.Row="0">
+						<chromeTabs:ChromeTabPanel Background="{TemplateBinding Background}" IsItemsHost="True"/>
+					</Border>
+					<Grid Grid.Row="1" Visibility="{TemplateBinding TabPersistBehavior, Converter={StaticResource TabPersistBehaviorToContentPresenterVisibilityConverter}}">
+						<ContentPresenter Content="{TemplateBinding SelectedContent}"/>
+					</Grid>
+					<Grid x:Name="PART_ItemsHolder" Grid.Row="1" Visibility="{TemplateBinding TabPersistBehavior, Converter={StaticResource TabPersistBehaviorToItemHolderVisibilityConverter}}"/>
+				</Grid>
+			</ControlTemplate>
+
 		</ResourceDictionary>
 	</Window.Resources>
 	<DockPanel>
@@ -66,63 +131,33 @@
 					</HierarchicalDataTemplate>
 				</TreeView.ItemTemplate>
 			</TreeView>
-			<ksc:DocumentTabControl x:Name="TabControl" ItemsSource="{Binding Tabs}" SelectedItem="{Binding CurrentTab}" TabStripPlacement="Top" >
-			    <TabControl.ItemTemplate>
-			        <DataTemplate DataType="{x:Type ksBrowser:BrowserTabItemVM}">
-						<DockPanel>
-							<DockPanel.InputBindings>
-								<MouseBinding MouseAction="MiddleClick" Command="{Binding CloseAction}"/>
-							</DockPanel.InputBindings>
-							<DockPanel.ToolTip>
-								<StackPanel MaxWidth="250">
-									<TextBlock Text="{Binding WebContentPresenter.DocumentTitle}" TextWrapping="WrapWithOverflow" FontWeight="Bold"/>
-									<TextBlock Text="{Binding WebContentPresenter.Source.Host}"/>
-								</StackPanel>
-							</DockPanel.ToolTip>
-							<!-- <Grid x:Name="Icon" VerticalAlignment="Center" DockPanel.Dock="Left"/> -->
-							<Button 
-								Command="{Binding CloseAction}"
-								Content="r" FontFamily="Webdings" DockPanel.Dock="Right" 
-								Background="Transparent" 
-								BorderBrush="Transparent"
-								Width="16" Height="16"
-								VerticalAlignment="Center"
-								>
-							</Button>
-							<TextBlock Text="{Binding WebContentPresenter.DocumentTitle}" MaxWidth="120" VerticalAlignment="Center"/>
-						</DockPanel>
-			        </DataTemplate>
-		        </TabControl.ItemTemplate>
-		        <TabControl.ContentTemplate>
-			        <DataTemplate DataType="{x:Type ksBrowser:BrowserTabItemVM}">
-						<DockPanel>
-							<ListBox ItemsSource="{Binding WebContentPresenter.DownloadManager.DownloadOperations}" DockPanel.Dock="Bottom" 
-							>
-								<ListBox.ItemsPanel>
-									<ItemsPanelTemplate>
-										<StackPanel IsItemsHost="True" Orientation="Horizontal"/>
-									</ItemsPanelTemplate>
-								</ListBox.ItemsPanel>
-							</ListBox>
-							<ContentControl Content="{Binding WebContentPresenter}">
-								<ContentControl.Resources>
-									<DataTemplate DataType="{x:Type ksBrowser:WebView2ControllerVM}">
-										<controls:WebView2Controller />
-									</DataTemplate>
-									<DataTemplate DataType="{x:Type ksBrowser:CefSharpControllerVM}">
-										<controls:CefSharpController/>
-									</DataTemplate>
-								</ContentControl.Resources>
-							</ContentControl>
-						</DockPanel>
-			        </DataTemplate>
-		        </TabControl.ContentTemplate>
-			    <ksc:DocumentTabControl.NewTabButtonTemplate>
-				    <ControlTemplate TargetType="Button">
-					    <Button x:Name="NewTabButton" Content="Ê" FontFamily="Wingdings 2" MinWidth="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" Command="{Binding NewTabCommand}" Margin="0 2 0 -1"/>
-				    </ControlTemplate>
-			    </ksc:DocumentTabControl.NewTabButtonTemplate>
-	        </ksc:DocumentTabControl>
+			<chromeTabs:ChromeTabControl 
+				x:Name="TabControl" 
+				Template="{DynamicResource ChromeTabControlTemplate}" 
+				ItemTemplate="{DynamicResource ChromeTabHeaderTemplate}"
+				ItemsSource="{Binding Tabs}" 
+				SelectedItem="{Binding CurrentTab}" 
+				MaximumTabWidth="200"
+				TabPersistBehavior="All"
+				AddTabButtonBehavior="OpenNewTab"
+				Background="AliceBlue"
+				SelectedTabBrush="WhiteSmoke"
+				CanMoveTabs="{Binding CanMoveTabs}"
+				DragWindowWithOneTab="True"
+				IsAddButtonVisible="{Binding ShowAddButton}"
+				AddTabCommand="{Binding AddTabCommand}"
+				CloseTabCommand="{Binding CloseTabCommand}"
+				ReorderTabsCommand="{Binding ReorderTabsCommand}"
+				TabTearTriggerDistance="10"
+				TabDraggedOutsideBonds="TabControl_TabDraggedOutsideBonds"
+				>
+
+			    <!-- <ksc:DocumentTabControl.NewTabButtonTemplate> -->
+				   <!--  <ControlTemplate TargetType="Button"> -->
+					  <!--   <Button x:Name="NewTabButton" Content="Ê" FontFamily="Wingdings 2" MinWidth="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" Command="{Binding NewTabCommand}" Margin="0 2 0 -1"/> -->
+				   <!--  </ControlTemplate> -->
+			    <!-- </ksc:DocumentTabControl.NewTabButtonTemplate> -->
+	        </chromeTabs:ChromeTabControl>
 		</DockPanel>
     </DockPanel>
-</Window>
+</controls1:ChromeTabsBaseWindow>

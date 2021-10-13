@@ -16,10 +16,11 @@ using KsWare.Presentation.ViewFramework.Behaviors;
 namespace KsWare.KsBrowser {
 
 	public class CefSharpControllerVM : WebContentPresenterVM, IViewControllerVM<ChromiumWebBrowser>  {
+		private bool _created;
 
 		/// <inheritdoc />
 		public CefSharpControllerVM() {
-			Debug.WriteLine($"new CefSharpControllerVM");
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] new CefSharpControllerVM");
 			RegisterChildren(() => this);
 
 			// NavigateBackCommand = initialize later
@@ -35,6 +36,7 @@ namespace KsWare.KsBrowser {
 			}
 
 			if (e.NewValue != null) {
+				Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] {nameof(CefSharpControllerVM)}.{nameof(NotifyViewChanged)}");
 				ChromiumWebBrowser = e.NewValue;
 
 				NavigateBackCommand = ChromiumWebBrowser.BackCommand; OnPropertyChanged(nameof(NavigateBackCommand));
@@ -53,6 +55,10 @@ namespace KsWare.KsBrowser {
 			}
 		}
 
+		/// <remarks>
+		/// --> <see cref="BrowserTabItemVM.WebContentPresenter_NewWindowRequested"/>
+		/// ==> <see cref="Initialize">Initialize(PrivateNewWindowRequestedEventArgs)</see>
+		/// </remarks>
 		private void LifeSpanHandler_NewWindowRequested(object sender, CefSpecific.NewWindowRequestedEventArgs e) {
 			Dispatcher.Invoke(DispatcherPriority.Normal, () =>
 				EventManager.Raise<EventHandler<NewWindowRequestedEventArgs>, NewWindowRequestedEventArgs>(
@@ -66,11 +72,11 @@ namespace KsWare.KsBrowser {
 		}
 
 		private void LifeSpanHandler_AfterCreated(object sender, AfterCreatedEventArgs e) {
-
+			_created = true;
 		}
 
 		private void ChromiumWebBrowser_IsBrowserInitializedChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e) {
-			
+
 		}
 
 		private void ChromiumWebBrowser_TitleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e) {
@@ -87,15 +93,24 @@ namespace KsWare.KsBrowser {
 				case null:
 					throw new ArgumentNullException(nameof(parameter));
 				case PrivateNewWindowRequestedEventArgs args: {
-					Debug.WriteLine($"InitializeNewPresenter NewWindowRequested");
+					Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] InitializeNewPresenter NewWindowRequested");
 					if (args.Referrer == null) throw new ArgumentNullException(nameof(PrivateNewWindowRequestedEventArgs.Referrer));
 
+					// == BUG CefBrowser can not use the new ChromiumWebBrowser
 					args.CoreArguments.NewBrowser = ChromiumWebBrowser;
 					args.CoreArguments.Handled = true;
+					// == WORKAROUND
+					// await Task.Run(async () => { while (_created == false) { await Task.Delay(25).ConfigureAwait(false); } });
+					await Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, () => { });
+					await NavigateToUriAsync(new Uri(args.CoreArguments.TargetUrl, UriKind.Absolute)); 
+					// == END
+					// System.Exception: 'The browser has not been initialized. Load can only be called after the underlying CEF browser is initialized (CefLifeSpanHandler::OnAfterCreated).'
+					// WORKAROUND: wait for OnAfterCreated
+
 					break;
 				}
 				case Uri uri:
-					Debug.WriteLine($"InitializeNewPresenter {uri}");
+					Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] InitializeNewPresenter {uri}");
 					await NavigateToUriAsync(uri);
 					break;
 				default:

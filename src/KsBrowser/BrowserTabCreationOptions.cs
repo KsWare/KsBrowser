@@ -1,22 +1,22 @@
 ﻿using System;
-using KsWare.Presentation.Controls;
+using KsWare.Presentation.ViewModels;
 using Microsoft.Web.WebView2.Core;
 
 namespace KsWare.KsBrowser {
 
 	public class BrowserTabCreationOptions : ITabCreationOptions {
 
-		public BrowserTabCreationOptions(object newWindowRequest, TabItemVM referrer) {
+		public BrowserTabCreationOptions(object newWindowRequest, ChromeTabItemVM referrer) {
 			NewWindowRequest = newWindowRequest;
 			Referrer = referrer;
 		}
 
-		public BrowserTabCreationOptions(Uri navigationUri, TabItemVM referrer = null) {
+		public BrowserTabCreationOptions(Uri navigationUri, ChromeTabItemVM referrer = null) {
 			NavigationUri = navigationUri;
 			Referrer = referrer;
 		}
 		
-		public TabItemVM Referrer { get; }
+		public ChromeTabItemVM Referrer { get; }
 
 		public object NewWindowRequest { get; }
 

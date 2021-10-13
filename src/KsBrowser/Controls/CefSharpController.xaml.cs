@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using CefSharp.Wpf;
@@ -12,15 +13,15 @@ namespace KsWare.KsBrowser.Controls {
 	public partial class CefSharpController : UserControl {
 
 		public CefSharpController() {
-			Debug.WriteLine($"new CefSharpController");
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] new CefSharpController");
 			InitializeComponent();
-			Debug.WriteLine($"CefSharpController InitializeComponent");
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] CefSharpController InitializeComponent");
 
 			DataContextChanged += OnDataContextChanged;
 		}
 
 		private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e) {
-			Debug.WriteLine($"CefSharpController DataContextChanged {e.NewValue?.GetType().Name??"null"}");
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] CefSharpController DataContextChanged {e.NewValue?.GetType().Name??"null"}");
 			if (e.OldValue is CefSharpControllerVM oldVM) {
 				oldVM.NotifyViewChanged(this, new ValueChangedEventArgs<ChromiumWebBrowser>(null, BrowserControl)); // detach WebView2 from old view model
 			}

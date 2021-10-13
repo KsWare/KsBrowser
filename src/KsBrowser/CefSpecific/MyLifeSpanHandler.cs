@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using CefSharp;
 
 namespace KsWare.KsBrowser.CefSpecific {
@@ -18,28 +19,37 @@ namespace KsWare.KsBrowser.CefSpecific {
 			return true;
 		}
 
-		public void OnAfterCreated(IWebBrowser browserControl, IBrowser browser) {
+		void ILifeSpanHandler.OnAfterCreated(IWebBrowser browserControl, IBrowser browser) {
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] MyLifeSpanHandler.OnAfterCreated");
 			AfterCreated?.Invoke(this, new AfterCreatedEventArgs(browserControl,browser));
 		}
 
-		public void OnBeforeClose(IWebBrowser browserControl, IBrowser browser) {
+		void ILifeSpanHandler.OnBeforeClose(IWebBrowser browserControl, IBrowser browser) {
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] MyLifeSpanHandler.OnBeforeClose");
 			BeforeClose?.Invoke(this, new BeforeCloseEventArgs(browserControl,browser));
 		}
 
-		public bool OnBeforePopup(IWebBrowser browserControl, IBrowser browser, IFrame frame, string targetUrl,
+		bool ILifeSpanHandler.OnBeforePopup(IWebBrowser browserControl, IBrowser browser, IFrame frame, string targetUrl,
 			string targetFrameName, WindowOpenDisposition targetDisposition, bool userGesture,
 			IPopupFeatures popupFeatures, IWindowInfo windowInfo, IBrowserSettings browserSettings,
 			ref bool noJavascriptAccess, out IWebBrowser newBrowser)
 		{
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] MyLifeSpanHandler.OnBeforePopup");
 			var args = new NewWindowRequestedEventArgs(browserControl, browser, frame, targetUrl, targetFrameName, targetDisposition, userGesture, popupFeatures, windowInfo, browserSettings, noJavascriptAccess);
-			NewWindowRequested?.Invoke(this, args);
+			NewWindowRequested?.Invoke(this, args); // => CefSharpControllerVM.LifeSpanHandler_NewWindowRequested
 			noJavascriptAccess = args.NoJavascriptAccess;
-			newBrowser = args.NewBrowser;
-			return args.Handled;
+
+			// == DISABLED as long not working
+			// newBrowser = args.NewBrowser;
+			// return args.Handled;
 			// System.Exception: 'returning true cancels popup creation,
 			// if you return true newBrowser should be set to null.Previously no exception was thrown in this instance,
 			// this exception has been added to reduce the number of support requests from people returning true and
 			// setting newBrowser and expecting popups to work.'
+			// == WORKAROUND
+			newBrowser = null;
+			return true;
+			// == END 
 		}
 	}
 

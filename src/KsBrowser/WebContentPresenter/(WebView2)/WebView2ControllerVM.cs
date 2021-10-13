@@ -26,7 +26,7 @@ namespace KsWare.KsBrowser {
 
 		/// <inheritdoc />
 		public WebView2ControllerVM() {
-			Debug.WriteLine($"new WebView2ControllerVM");
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] new WebView2ControllerVM");
 			RegisterChildren(() => this);
 
 			NavigateBackCommand = new RelayCommand(() => WebView2?.GoBack(), () => WebView2?.CanGoBack??false);
@@ -59,7 +59,7 @@ namespace KsWare.KsBrowser {
 		/// <inheritdoc />
 		// implements IWebView2ControllerVM.NotifyViewChanged
 		public void NotifyViewChanged(object sender, ValueChangedEventArgs<WebView2> e) {
-			Debug.WriteLine($"===== NotifyViewChanged {(e.NewValue != null ? "WebView2" : "null")} =====");
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] NotifyViewChanged {(e.NewValue != null ? "WebView2" : "null")} =====");
 			var oldValue = WebView2;
 
 			if (oldValue != null) {
@@ -79,7 +79,7 @@ namespace KsWare.KsBrowser {
 			InitWebView2Modules();
 
 			if (WebView2 != null) {
-				Debug.WriteLine($"View assigned.");
+				Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] View assigned.");
 			}
 		}
 
@@ -225,8 +225,8 @@ namespace KsWare.KsBrowser {
 			// var hControl = ((HwndSource)PresentationSource.FromVisual(WebView2))?.Handle;
 			// var hWindow = new WindowInteropHelper(App.Current.MainWindow).Handle;
 
-			Debug.WriteLine($"    Environment created");
-			Debug.WriteLine($"       Version: {environment.BrowserVersionString}");
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}]     Environment created");
+			Debug.WriteLine($"            Version: {environment.BrowserVersionString}");
 
 			// environment.BrowserProcessExited += ; 
 			// environment.NewBrowserVersionAvailable += Environment_NewBrowserVersionAvailable;
@@ -306,7 +306,7 @@ namespace KsWare.KsBrowser {
 				case null:
 					throw new ArgumentNullException(nameof(parameter));
 				case PrivateNewWindowRequestedEventArgs args: {
-					Debug.WriteLine($"InitializeNewPresenter NewWindowRequested");
+					Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] InitializeNewPresenter NewWindowRequested");
 					if (args.Referrer == null) throw new ArgumentNullException(nameof(PrivateNewWindowRequestedEventArgs.Referrer));
 
 					var environment = args.Referrer.WebView2.CoreWebView2.Environment;
@@ -319,7 +319,7 @@ namespace KsWare.KsBrowser {
 					break;
 				}
 				case Uri uri:
-					Debug.WriteLine($"InitializeNewPresenter {uri}");
+					Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] InitializeNewPresenter {uri}");
 					await NavigateToUriAsync(uri);
 					break;
 				default:

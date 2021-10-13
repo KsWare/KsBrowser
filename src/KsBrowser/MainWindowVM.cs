@@ -7,9 +7,9 @@ using System.Xml.XPath;
 using KsWare.KsBrowser.Extensions;
 using KsWare.KsBrowser.Tools;
 using KsWare.Presentation;
-using KsWare.Presentation.Controls;
 using KsWare.Presentation.ViewFramework.Behaviors;
 using KsWare.Presentation.ViewModelFramework;
+using KsWare.Presentation.ViewModels;
 using Microsoft.Web.WebView2.Core;
 
 namespace KsWare.KsBrowser {
@@ -58,7 +58,7 @@ namespace KsWare.KsBrowser {
 
 		/// <summary>Implements ITabHost.CreateNewTab</summary> 
 		public void CreateNewTab(ITabCreationOptions options) {
-			Debug.WriteLine($"ITabHost.CreateNewTab options");
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] ITabHost.CreateNewTab options");
 			BrowserTabItemVM newTab;
 			if (options is BrowserTabCreationOptions o) {
 				newTab = new BrowserTabItemVM(this, (BrowserTabItemVM)options.Referrer);
@@ -75,7 +75,7 @@ namespace KsWare.KsBrowser {
 
 		/// <inheritdoc/>
 		/// Implements <seealso cref="ITabHostVM.CloseTab"/>
-		public void CloseTab(TabItemVM tabItemVM) {
+		public void CloseTab(ChromeTabItemVM tabItemVM) {
 			tabItemVM.NotifyClosing();
 			var idx = Tabs.IndexOf(tabItemVM);
 			Tabs.RemoveAt(idx);
