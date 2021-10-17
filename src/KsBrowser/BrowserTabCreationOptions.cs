@@ -4,7 +4,7 @@ using Microsoft.Web.WebView2.Core;
 
 namespace KsWare.KsBrowser {
 
-	public class BrowserTabCreationOptions : ITabCreationOptions {
+	public class BrowserTabCreationOptions : ITabItemCreationOptions {
 
 		public BrowserTabCreationOptions(object newWindowRequest, ChromeTabItemVM referrer) {
 			NewWindowRequest = newWindowRequest;

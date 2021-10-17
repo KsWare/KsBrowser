@@ -1,6 +1,6 @@
 ﻿namespace KsWare.Presentation.ViewModels {
 
-	public interface ITabCreationOptions {
+	public interface ITabItemCreationOptions {
 		ChromeTabItemVM Referrer { get; }
 	}
 

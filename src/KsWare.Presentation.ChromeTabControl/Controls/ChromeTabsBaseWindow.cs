@@ -6,26 +6,75 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using ChromeTabs;
-using Demo.Utilities;
+using KsWare.Presentation.Utilities;
 using KsWare.Presentation.ViewModels;
 using static System.Windows.PresentationSource;
 
 namespace KsWare.Presentation.Controls {
 
+	// TODO Revise old docking logic and use MVVM
+
 	public abstract class ChromeTabsBaseWindow : Window {
+
+		private static readonly List<ChromeTabsBaseWindow> ChromeTabsWindows = new List<ChromeTabsBaseWindow>();
+
+		private ChromeTabControl _tabControl;
 
 		//We use this collection to keep track of what windows we have open
 		protected readonly List<DockingWindow> DockingWindows = new List<DockingWindow>();
 
 		public ChromeTabsBaseWindow() {
-
+			
 		}
 
-		protected abstract bool TryDockWindow(Point position, ChromeTabItemVM dockedWindowVM);
+		public new ChromeTabsBaseWindowVM DataContext { get => (ChromeTabsBaseWindowVM)base.DataContext; set => base.DataContext = value; }
+
+		/// <summary>
+		/// This event triggers when a tab is dragged outside the bonds of the tab control panel.
+		/// We can use it to create a docking tab control.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		protected void TabControl_TabDraggedOutsideBonds(object sender, TabDragEventArgs e) {
+			_tabControl = (ChromeTabControl)sender;
+			var draggedTab = e.Tab as ChromeTabItemVM;
+			if (TryDragTabToWindow(e.CursorPosition, draggedTab)) {
+				//Set Handled to true to tell the tab control that we have dragged the tab to a window, and the tab should be closed.
+				e.Handled = true;
+			}
+		}
+
+		protected void TabControl_ContainerItemPreparedForOverride(object sender, ContainerOverrideEventArgs e) {
+			_tabControl = (ChromeTabControl)sender;
+			e.Handled = true;
+			if (e.TabItem != null && e.Model is ChromeTabItemVM viewModel) {
+				e.TabItem.IsPinned = viewModel.IsPinned;
+			}
+		}
+
+		protected bool TryDockWindow(Point absoluteScreenPos, ChromeTabItemVM dockedWindowVM) {
+			var position = _tabControl.PointFromScreen(absoluteScreenPos);
+			Debug.WriteLine($"    {position}");
+			//Hit test against the tab control
+			if (_tabControl.InputHitTest(position) is FrameworkElement element) {
+				Debug.WriteLine($"{element.GetType().Name} {element.Name}");
+				////test if the mouse is over the tab panel or a tab item.
+				if (CanInsertTabItem(element)) {
+					//TabBase dockedWindowVM = (TabBase)win.DataContext;
+					DataContext.TabItems.Add(dockedWindowVM); //TODO TryDockWindow => VM 
+					DataContext.CurrentTabItem = dockedWindowVM;
+					//We run this method on the tab control for it to grab the tab and position it at the mouse, ready to move again.
+					_tabControl.GrabTab(dockedWindowVM);
+					return true;
+				}
+			}
+			return false;
+		}
 
 		protected bool TryDragTabToWindow(Point position, ChromeTabItemVM draggedTab) {
 			// TODO add property 'AllowChangeWindow' or similar and use that instead checking type
@@ -34,12 +83,46 @@ namespace KsWare.Presentation.Controls {
 			if (draggedTab.IsPinned)
 				return false;  //We don't want pinned tabs to be draggable either.
 
+			return UseDockingWindow(position, draggedTab);
+			// return UseChromeTabsWindow(position, draggedTab);
+		}
+
+		// private bool UseChromeTabsWindow(Point position, ChromeTabItemVM draggedTab) {
+		// 	var win = ChromeTabsWindows.FirstOrDefault(x => x.DataContext == draggedTab); //check if it's already open
+		// 	if (win == null) { //If not, create a new one
+		// 		win = new ChromeTabsWindow() {
+		// 			Title = draggedTab?.Title ?? "", // Title MUST NOT be null
+		// 			DataContext = new ChromeTabsWindowVM()
+		// 		};
+		// 		//TODO draggedTab.NotifyMoveToNewHost(win);
+		// 		
+		// 		win.Closed += DockingWindow_Closed;
+		// 		win.Loaded += DockingWindow_Loaded;
+		// 		win.LocationChanged += DockingWindow_LocationChanged;
+		// 		win.Tag = position;
+		// 		var scale = VisualTreeHelper.GetDpi(this);
+		// 		win.Left = position.X / scale.DpiScaleX - win.Width / 2;
+		// 		win.Top = position.Y / scale.DpiScaleY - 10;
+		//
+		// 		win.Show();
+		// 	}
+		// 	else{
+		// 		Debug.WriteLine(DateTime.Now.ToShortTimeString() + " got window");
+		// 		MoveWindow(win, position);
+		// 	}
+		//
+		// 	ChromeTabsWindows.Add(win);
+		// 	return true;
+		// }
+
+		private bool UseDockingWindow(Point position, ChromeTabItemVM draggedTab) {
 			var win = DockingWindows.FirstOrDefault(x => x.DataContext == draggedTab); //check if it's already open
 			if (win == null) { //If not, create a new one
 				win = new DockingWindow {
-					Title = draggedTab?.Title,
+					Title = draggedTab?.Title ?? "", // Title MUST NOT be null
 					DataContext = draggedTab
 				};
+				draggedTab.TabHost.MoveTabItem(draggedTab, null);
 				
 				win.Closed += DockingWindow_Closed;
 				win.Loaded += DockingWindow_Loaded;
@@ -94,21 +177,16 @@ namespace KsWare.Presentation.Controls {
 		//We use this to keep track of where the window is on the screen, so we can dock it later
 		private void DockingWindow_LocationChanged(object sender, EventArgs e) {
 			var win = (Window)sender;
-			if (!win.IsLoaded)
-				return;
-			var pt = new W32Point();
-			if (!Win32.GetCursorPos(ref pt)) {
-				Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
-			}
+			if (!win.IsLoaded) return;
 
-			var absoluteScreenPos = new Point(pt.X, pt.Y);
-
+			var absoluteScreenPos = WinApi.GetCursorPos();
 			var windowUnder = FindWindowUnderThisAt(win, absoluteScreenPos);
+			var rect = windowUnder != null ? new Rect(windowUnder.Left, windowUnder.Top, windowUnder.Width, windowUnder.Height) : new Rect();
+			if(windowUnder==null) Debug.WriteLine($"None  C:{absoluteScreenPos}");
+			else Debug.WriteLine($"Found C:{absoluteScreenPos} W:{rect}");
 
 			if (windowUnder != null && windowUnder.Equals(this)) {
-				var relativePoint =
-					PointFromScreen(absoluteScreenPos); //The screen position relative to the main window
-				if (TryDockWindow(relativePoint, win.DataContext as ChromeTabItemVM)) {
+				if (TryDockWindow(absoluteScreenPos, (ChromeTabItemVM)win.DataContext)) {
 					win.Close();
 				}
 			}
@@ -132,40 +210,38 @@ namespace KsWare.Presentation.Controls {
 		/// <summary>
 		/// Used P/Invoke to find and return the top window under the cursor position
 		/// </summary>
-		/// <param name="source"></param>
-		/// <param name="screenPoint">WPF units (96dpi), not device units</param>
+		/// <param name="source">The source window.</param>
+		/// <param name="devicePoint">Point in device units. NOT WPF units (96dpi)</param>
 		/// <returns></returns>
-		private Window FindWindowUnderThisAt(Window source, Point screenPoint) {
-		
-			//This prevents "UI debugging tools for XAML" from interfering when debugging.
-			var allWindows = SortWindowsTopToBottom(Application.Current.Windows.OfType<Window>().Where(x =>
-				x.GetType().ToString() !=
-				"Microsoft.VisualStudio.DesignTools.WpfTap.WpfVisualTreeService.Adorners.AdornerWindow"
-				&& x.GetType().ToString() !=
-				"Microsoft.VisualStudio.DesignTools.WpfTap.WpfVisualTreeService.Adorners.AdornerLayerWindow"));
-			var windowsUnderCurrent = from win in allWindows
-				where (win.WindowState == WindowState.Maximized ||
-				       new Rect(win.Left, win.Top, win.Width, win.Height).Contains(screenPoint))
-				      && !Equals(win, source)
-				select win;
+		private Window FindWindowUnderThisAt(Window source, Point devicePoint) {
+			var excludeTypeNames = new [] {
+				//prevent "UI debugging tools for XAML" from interfering when debugging.
+				"Microsoft.VisualStudio.DesignTools.WpfTap.WpfVisualTreeService.Adorners.AdornerWindow", 
+				"Microsoft.VisualStudio.DesignTools.WpfTap.WpfVisualTreeService.Adorners.AdornerLayerWindow"
+			};
+
+			var appWindows = Application.Current.Windows.OfType<Window>().ToArray();
+			var excludeWindows = appWindows.Where(w => w == source || excludeTypeNames.Contains(w.GetType().FullName));
+			var sortedWindows = SortWindowsTopToBottom(appWindows.Except(excludeWindows));
+			var windowsUnderCurrent = sortedWindows
+				//.Where(w => w.WindowState != WindowState.Maximized)
+				.Where(w=>WinApi.GetWindowRect(w).Contains(devicePoint));
 			return windowsUnderCurrent.FirstOrDefault();
 		}
 
 		/// <summary>
 		/// We need to do some P/Invoke magic to get the windows on screen
 		/// </summary>
-		/// <param name="unsorted"></param>
+		/// <param name="windows"></param>
 		/// <returns></returns>
-		private IEnumerable<Window> SortWindowsTopToBottom(IEnumerable<Window> unsorted) {
-			//TODO move api code to Win32.cs
-			var byHandle = unsorted.ToDictionary(win => ((HwndSource)FromVisual(win)).Handle);
-
-			for (var hWnd = Win32.GetTopWindow(IntPtr.Zero);
-				hWnd != IntPtr.Zero;
-				hWnd = Win32.GetWindow(hWnd, Win32.GW_HWNDNEXT)) {
+		private static IEnumerable<Window> SortWindowsTopToBottom(IEnumerable<Window> windows) {
+			var byHandle = windows.ToDictionary(w => ((HwndSource)FromVisual(w)).Handle);
+			for (var hWnd = WinApi.GetTopWindow(IntPtr.Zero); hWnd != IntPtr.Zero; hWnd = WinApi.GetWindow(hWnd, WinApi.GW_HWNDNEXT)) {
 				if (byHandle.ContainsKey(hWnd)) yield return byHandle[hWnd];
 			}
 		}
+
+		
 	}
 
 }

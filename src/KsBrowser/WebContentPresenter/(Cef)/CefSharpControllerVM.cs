@@ -1,22 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Threading;
-using CefSharp.Handler;
 using CefSharp.Wpf;
 using KsWare.KsBrowser.Base;
 using KsWare.KsBrowser.CefSpecific;
 using KsWare.KsBrowser.Tools;
 using KsWare.Presentation;
-using KsWare.Presentation.ViewFramework.Behaviors;
+using KsWare.Presentation.Controls;
 
 namespace KsWare.KsBrowser {
 
 	public class CefSharpControllerVM : WebContentPresenterVM, IViewControllerVM<ChromiumWebBrowser>  {
-		private bool _created;
 
 		/// <inheritdoc />
 		public CefSharpControllerVM() {
@@ -72,11 +68,11 @@ namespace KsWare.KsBrowser {
 		}
 
 		private void LifeSpanHandler_AfterCreated(object sender, AfterCreatedEventArgs e) {
-			_created = true;
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] LifeSpanHandler_AfterCreated");
 		}
 
 		private void ChromiumWebBrowser_IsBrowserInitializedChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e) {
-
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] ChromiumWebBrowser_IsBrowserInitializedChanged");
 		}
 
 		private void ChromiumWebBrowser_TitleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e) {
@@ -85,6 +81,7 @@ namespace KsWare.KsBrowser {
 
 		private void ChromiumWebBrowser_AddressChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e) {
 			Address = e.NewValue as string;
+			Source =  Uri.TryCreate(Address,UriKind.RelativeOrAbsolute, out var uri) ? uri : new Uri("about:unknown");
 		}
 
 		/// <inheritdoc />
@@ -100,7 +97,7 @@ namespace KsWare.KsBrowser {
 					args.CoreArguments.NewBrowser = ChromiumWebBrowser;
 					args.CoreArguments.Handled = true;
 					// == WORKAROUND
-					// await Task.Run(async () => { while (_created == false) { await Task.Delay(25).ConfigureAwait(false); } });
+					// await Task.Run(async () => { while (ChromiumWebBrowser.IsBrowserInitialized == false) { await Task.Delay(25).ConfigureAwait(false); } });
 					await Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, () => { });
 					await NavigateToUriAsync(new Uri(args.CoreArguments.TargetUrl, UriKind.Absolute)); 
 					// == END
@@ -136,6 +133,12 @@ namespace KsWare.KsBrowser {
 			}
 			internal CefSpecific.NewWindowRequestedEventArgs CoreArguments { get; }
 			internal CefSharpControllerVM Referrer { get; }
+		}
+
+		public void MoveToNewWindow(DockingWindow window) {
+			var parent = (UserControl)ChromiumWebBrowser.Parent;
+			parent.Content = null;
+			window.Content = ChromiumWebBrowser;
 		}
 	}
 

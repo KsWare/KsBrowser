@@ -3,8 +3,15 @@
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:ksv="http://ksware.de/Presentation/ViewFramework"
-	xmlns:local="clr-namespace:KsWare.KsBrowser">
+	xmlns:local="clr-namespace:KsWare.KsBrowser"
+	xmlns:system="clr-namespace:System;assembly=System.Runtime"
+	xmlns:controls="clr-namespace:KsWare.Presentation.Controls;assembly=KsWare.Presentation.ChromeTabControl">
     <Application.Resources>
-         
+	 <system:Object x:Key="dummy"/>
+		<ResourceDictionary x:Key="DockingWindow.Resources">
+			<DataTemplate DataType="{x:Type local:BrowserTabItemVM}">
+				<TextBlock Text="TEST"></TextBlock>
+			</DataTemplate>
+		</ResourceDictionary>
     </Application.Resources>
 </ksv:ViewModelApplication>

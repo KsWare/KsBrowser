@@ -26,7 +26,7 @@
         </DataTemplate>
     </Window.Resources>
     <Grid>
-        <ct:ChromeTabControl  x:Name="MyChromeTabControlWithPinnedTabs"
+        <ct:ChromeTabControl  x:Name="TabControl"
                               Background="AliceBlue"
                               ItemsSource="{Binding ItemCollection}"
                               SelectedItem="{Binding SelectedTab}"
@@ -37,8 +37,7 @@
                               MinimumTabWidth="40"
                               PinnedTabWidth="50"
                               MaximumTabWidth="125"
-                              TabDraggedOutsideBonds="TabControl_TabDraggedOutsideBonds"
-                              ContainerItemPreparedForOverride="TabControl_ContainerItemPreparedForOverride">
+                              >
             <!--We override the control template here to show how you can modify the properties of tab panel and content presenter-->
             <ct:ChromeTabControl.Template>
                 <ControlTemplate TargetType="{x:Type ct:ChromeTabControl}">

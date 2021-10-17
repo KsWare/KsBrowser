@@ -47,8 +47,6 @@ namespace KsWare.KsBrowser {
 		public CookieManagerVM CookieManager { get; [UsedImplicitly] private set; }
 		public CoreControllerVM Controller { get; [UsedImplicitly] private set; }
 		
-		public Uri Source { get => Fields.GetValue<Uri>(); set => Fields.SetValue(value); }
-
 		public Dictionary<string, IObjectVM> Modules { get; }= new Dictionary<string, IObjectVM>();
 
 		protected override async void DoNavigate(object parameter) {

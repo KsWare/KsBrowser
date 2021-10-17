@@ -24,6 +24,7 @@ namespace KsWare.KsBrowser {
 
 		public string Address { get => Fields.GetValue<string>(); set => Fields.SetValue(value); }
 		public string DocumentTitle { get => Fields.GetValue<string>(); protected set => Fields.SetValue(value); }
+		public Uri Source { get => Fields.GetValue<Uri>(); set => Fields.SetValue(value); }
 
 		public ICommand NavigateCommand { get; }
 		public ICommand RefreshCommand { get; protected set; }

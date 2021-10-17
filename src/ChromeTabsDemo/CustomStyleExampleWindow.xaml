@@ -306,7 +306,7 @@
     <Grid>
         <!--The color of the add tab button can also be set as a property on the tab control.
         Here it is set to orange on mouseover and red on click. The tab overlap is also reduced to 0-->
-        <ct:ChromeTabControl  x:Name="MyChromeTabControlWithCustomStyle"
+        <ct:ChromeTabControl  x:Name="TabControl"
                               AddTabButtonMouseOverBrush="Orange"
                               AddTabButtonMouseDownBrush="Red"
                               SelectedTabBrush="WhiteSmoke"
@@ -321,7 +321,6 @@
                               MinimumTabWidth="40"
                               PinnedTabWidth="50"
                               MaximumTabWidth="250"
-                             TabDraggedOutsideBonds="TabControl_TabDraggedOutsideBonds"
                               ItemContainerStyle="{StaticResource CustomTabItemStyle}">
             <!--We override the control template here to show how you can modify the properties of tab panel and content presenter-->
             <ct:ChromeTabControl.Template>

@@ -9,11 +9,10 @@
 	xmlns:ksc="http://ksware.de/Presentation/Controls"
 	xmlns:chromeTabs="clr-namespace:ChromeTabs;assembly=ChromeTabs"
 	xmlns:converters="clr-namespace:ChromeTabs.Converters;assembly=ChromeTabs"
-	xmlns:demo="clr-namespace:Demo"
 	xmlns:controls1="clr-namespace:KsWare.Presentation.Controls;assembly=KsWare.Presentation.ChromeTabControl"
 	mc:Ignorable="d"
 	d:DataContext="{d:DesignInstance ksBrowser:MainWindowVM, IsDesignTimeCreatable=False}"
-	Title="{Binding CurrentTab.WebContentPresenter.DocumentTitle}" Height="450" Width="800">
+	Title="{Binding CurrentTabItem.WebContentPresenter.DocumentTitle}" Height="450" Width="800">
 	<Window.Resources>
 		<ResourceDictionary>
 			<ResourceDictionary.MergedDictionaries>
@@ -33,7 +32,7 @@
 						</StackPanel>
 					</DockPanel.ToolTip>
 					<!-- <Grid x:Name="Icon" VerticalAlignment="Center" DockPanel.Dock="Left"/> -->
-					<TextBlock Text="{Binding WebContentPresenter.DocumentTitle}" VerticalAlignment="Center"/>
+					<TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
 				</DockPanel>
 			</DataTemplate>
 
@@ -88,8 +87,8 @@
 
 			</MenuItem>
 			<MenuItem Header="_Tests">
-				<MenuItem Header="Crash Browser" Command="{Binding CurrentTab.WebContentPresenter.Modules[Test].CrashBrowserAction}"/>
-				<MenuItem Header="Emulate Mouse Wheel" Command="{Binding CurrentTab.WebContentPresenter.Controller.ClickAction}"/>
+				<MenuItem Header="Crash Browser" Command="{Binding CurrentTabItem.WebContentPresenter.Modules[Test].CrashBrowserAction}"/>
+				<MenuItem Header="Emulate Mouse Wheel" Command="{Binding CurrentTabItem.WebContentPresenter.Controller.ClickAction}"/>
 			</MenuItem>
 			<MenuItem Header="_Help">
 				<MenuItem Header="_About..."/>
@@ -104,9 +103,9 @@
 				</Style>
 			</FrameworkElement.Resources>			
 			<StackPanel Orientation="Horizontal">
-				<Button Content="Ù" FontFamily="Wingdings 3" Command="{Binding CurrentTab.WebContentPresenter.NavigateBackCommand}" ToolTip="Back"/>
-				<Button Content="Ú" FontFamily="Wingdings 3" Command="{Binding CurrentTab.WebContentPresenter.NavigateForwardCommand}" ToolTip="Forward"/>
-				<Button Command="{Binding CurrentTab.WebContentPresenter.RefreshCommand}"  ToolTip="Refresh">
+				<Button Content="Ù" FontFamily="Wingdings 3" Command="{Binding CurrentTabItem.WebContentPresenter.NavigateBackCommand}" ToolTip="Back"/>
+				<Button Content="Ú" FontFamily="Wingdings 3" Command="{Binding CurrentTabItem.WebContentPresenter.NavigateForwardCommand}" ToolTip="Forward"/>
+				<Button Command="{Binding CurrentTabItem.WebContentPresenter.RefreshCommand}"  ToolTip="Refresh">
 					<TextBlock Text="P" FontFamily="Wingdings 3" FontSize="14" FontWeight="Bold" RenderTransformOrigin="0.5 0.5" >
 						<TextBlock.RenderTransform>
 							<RotateTransform Angle="91"/>
@@ -115,16 +114,16 @@
 				</Button>
 			</StackPanel>
 			<StackPanel DockPanel.Dock="Right">
-				<Button Visibility="Collapsed" Content="Go" Command="{Binding CurrentTab.WebContentPresenter.NavigateCommand}" CommandParameter="{Binding CurrentTab.WebContentPresenter.Address}" ToolTip="Navigate"/>
+				<Button Visibility="Collapsed" Content="Go" Command="{Binding CurrentTabItem.WebContentPresenter.NavigateCommand}" CommandParameter="{Binding CurrentTabItem.WebContentPresenter.Address}" ToolTip="Navigate"/>
 			</StackPanel>
-			<TextBox Text="{Binding CurrentTab.WebContentPresenter.Address}" Padding="0 2 0 0">
+			<TextBox Text="{Binding CurrentTabItem.WebContentPresenter.Address}" Padding="0 2 0 0">
 				<TextBox.InputBindings>
-					<KeyBinding Key="Enter" Command="{Binding CurrentTab.WebContentPresenter.NavigateCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TextBox}, Path=Text}" />
+					<KeyBinding Key="Enter" Command="{Binding CurrentTabItem.WebContentPresenter.NavigateCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=TextBox}, Path=Text}" />
 				</TextBox.InputBindings>
 			</TextBox>
 		</DockPanel>
 		<DockPanel>
-			<TreeView DockPanel.Dock="Left" ItemsSource="{Binding Tabs}" ScrollViewer.HorizontalScrollBarVisibility="Auto" Width="200">
+			<TreeView DockPanel.Dock="Left" ItemsSource="{Binding TabItems}" ScrollViewer.HorizontalScrollBarVisibility="Auto" Width="200">
 				<TreeView.ItemTemplate>
 					<HierarchicalDataTemplate DataType="{x:Type ksBrowser:BrowserTabItemVM}" ItemsSource="{Binding SubTabs}">
 						<TextBlock Text="{Binding WebContentPresenter.DocumentTitle}"/>
@@ -135,22 +134,21 @@
 				x:Name="TabControl" 
 				Template="{DynamicResource ChromeTabControlTemplate}" 
 				ItemTemplate="{DynamicResource ChromeTabHeaderTemplate}"
-				ItemsSource="{Binding Tabs}" 
-				SelectedItem="{Binding CurrentTab}" 
+				ItemsSource="{Binding TabItems}" 
+				SelectedItem="{Binding CurrentTabItem}" 
 				MaximumTabWidth="200"
 				TabPersistBehavior="All"
 				AddTabButtonBehavior="OpenNewTab"
 				Background="AliceBlue"
 				SelectedTabBrush="WhiteSmoke"
-				CanMoveTabs="{Binding CanMoveTabs}"
+				CanMoveTabs="{Binding AllowMoveTabs}"
 				DragWindowWithOneTab="True"
 				IsAddButtonVisible="{Binding ShowAddButton}"
 				AddTabCommand="{Binding AddTabCommand}"
 				CloseTabCommand="{Binding CloseTabCommand}"
 				ReorderTabsCommand="{Binding ReorderTabsCommand}"
 				TabTearTriggerDistance="10"
-				TabDraggedOutsideBonds="TabControl_TabDraggedOutsideBonds"
-				>
+			>
 
 			    <!-- <ksc:DocumentTabControl.NewTabButtonTemplate> -->
 				   <!--  <ControlTemplate TargetType="Button"> -->

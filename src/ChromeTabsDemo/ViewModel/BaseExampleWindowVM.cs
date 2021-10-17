@@ -14,7 +14,7 @@ using KsWare.Presentation.ViewModels;
 
 namespace Demo.ViewModel {
 
-	public class BaseExampleWindowVM : ObjectVM {
+	public class BaseExampleWindowVM : ChromeTabsBaseWindowVM {
 
 		/// <inheritdoc />
 		public BaseExampleWindowVM() {
