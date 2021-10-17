@@ -39,6 +39,7 @@ namespace KsWare.Presentation.ViewModels {
 		}
 
 		protected virtual void DoCloseTab(object parameter) {
+			CloseTabItem((ChromeTabItemVM)parameter);
 		}
 
 		protected virtual void DoReorderTabs() {

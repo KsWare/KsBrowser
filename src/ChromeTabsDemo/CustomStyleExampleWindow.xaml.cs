@@ -12,7 +12,6 @@ namespace Demo {
 	public partial class CustomStyleExampleWindow : ChromeTabsBaseWindow {
 		public CustomStyleExampleWindow() {
 			InitializeComponent();
-			TabControl.TabDraggedOutsideBonds += TabControl_TabDraggedOutsideBonds;
 		}
 	}
 

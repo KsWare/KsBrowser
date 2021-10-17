@@ -1,10 +1,13 @@
-﻿using KsWare.Presentation.Utilities;
+﻿using System.Windows;
+using KsWare.Presentation.Controls;
+using KsWare.Presentation.Utilities;
 
 namespace KsWare.KsBrowser {
 	/// <summary>
 	/// Interaction logic for App.xaml
 	/// </summary>
 	public partial class App {
+
 		/// <inheritdoc />
 		public App() {
 			WinApi.SetProcessDpiAwarenessPerMonitor();

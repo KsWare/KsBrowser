@@ -5,8 +5,8 @@ using System.Linq;
 
 namespace KsWare.Presentation.ViewModels {
 
-	// partial for tab managing
-
+	
+	// This part implements the tab control logic
 	partial class ChromeTabsBaseWindowVM {
 
 		private void InitChromeTabsHost() {
@@ -51,11 +51,10 @@ namespace KsWare.Presentation.ViewModels {
 		/// Raises the <see cref="TabItemAddedEvent"/>.
 		/// </summary>
 		/// <param name="tabItem">The tab item that has been added.</param>
-		/// <param name="options"></param>
 		/// <remarks>
 		/// This is called after a tab item as been added.
 		/// </remarks>
-		private void OnTabItemAdded(ChromeTabItemVM tabItem) {
+		protected virtual void OnTabItemAdded(ChromeTabItemVM tabItem) {
 			(tabItem as IHandleTabItemNotifications)?.NotifyAdded(this);
 			EventManager.Raise<EventHandler<TabItemAddedEventArgs>, TabItemAddedEventArgs>(LazyWeakEventStore,
 				nameof(TabItemAddedEvent),

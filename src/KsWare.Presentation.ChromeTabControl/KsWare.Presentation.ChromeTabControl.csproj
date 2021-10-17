@@ -15,10 +15,4 @@
     <Folder Include="Example\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Page Update="Controls\DockingWindow.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-  </ItemGroup>
-
 </Project>

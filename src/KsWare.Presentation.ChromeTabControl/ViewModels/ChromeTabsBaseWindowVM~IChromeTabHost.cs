@@ -12,6 +12,7 @@ using KsWare.Presentation.ViewModels;
 
 namespace KsWare.Presentation.ViewModels {
 
+	// This part implements the IChromeTabHostVM members
 	public partial class ChromeTabsBaseWindowVM /*: IChromeTabHostVM*/ {
 
 		#region events

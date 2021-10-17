@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using CefSharp;
 using CefSharp.Wpf;
 using KsWare.KsBrowser.Base;
 using KsWare.KsBrowser.CefSpecific;
@@ -42,13 +44,28 @@ namespace KsWare.KsBrowser {
 				ChromiumWebBrowser.AddressChanged += ChromiumWebBrowser_AddressChanged;
 				ChromiumWebBrowser.TitleChanged += ChromiumWebBrowser_TitleChanged;
 				ChromiumWebBrowser.IsBrowserInitializedChanged += ChromiumWebBrowser_IsBrowserInitializedChanged;
+				ChromiumWebBrowser.LoadError += ChromiumWebBrowser_LoadError;
+				ChromiumWebBrowser.LoadingStateChanged += ChromiumWebBrowser_LoadingStateChanged;
+
 
 				var lifeSpanHandler = new MyLifeSpanHandler();
 				lifeSpanHandler.AfterCreated += LifeSpanHandler_AfterCreated;
 				lifeSpanHandler.BeforeClose += LifeSpanHandler_BeforeClose;
 				lifeSpanHandler.NewWindowRequested += LifeSpanHandler_NewWindowRequested;
 				ChromiumWebBrowser.LifeSpanHandler = lifeSpanHandler;
+
+				var requestHandler = new MyRequestHandler();
+				ChromiumWebBrowser.RequestHandler = requestHandler;
 			}
+		}
+
+		private void ChromiumWebBrowser_LoadingStateChanged(object sender, CefSharp.LoadingStateChangedEventArgs e) {
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] ChromiumWebBrowser_LoadingStateChanged {e.IsLoading}");
+		}
+
+		private void ChromiumWebBrowser_LoadError(object sender, CefSharp.LoadErrorEventArgs e) {
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] ChromiumWebBrowser_LoadError {e.ErrorCode} {e.ErrorText}");
+			ChromiumWebBrowser.LoadHtml("<html>" + e.ErrorText + "</html>", e.FailedUrl, Encoding.UTF8, true);
 		}
 
 		/// <remarks>
@@ -64,7 +81,7 @@ namespace KsWare.KsBrowser {
 		}
 
 		private void LifeSpanHandler_BeforeClose(object sender, BeforeCloseEventArgs e) {
-
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] LifeSpanHandler_BeforeClose");
 		}
 
 		private void LifeSpanHandler_AfterCreated(object sender, AfterCreatedEventArgs e) {
@@ -76,10 +93,12 @@ namespace KsWare.KsBrowser {
 		}
 
 		private void ChromiumWebBrowser_TitleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e) {
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] ChromiumWebBrowser_TitleChanged");
 			DocumentTitle = e.NewValue as string;
 		}
 
 		private void ChromiumWebBrowser_AddressChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e) {
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] ChromiumWebBrowser_AddressChanged");
 			Address = e.NewValue as string;
 			Source =  Uri.TryCreate(Address,UriKind.RelativeOrAbsolute, out var uri) ? uri : new Uri("about:unknown");
 		}
@@ -90,7 +109,7 @@ namespace KsWare.KsBrowser {
 				case null:
 					throw new ArgumentNullException(nameof(parameter));
 				case PrivateNewWindowRequestedEventArgs args: {
-					Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] InitializeNewPresenter NewWindowRequested");
+					Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] Initialize NewWindowRequested");
 					if (args.Referrer == null) throw new ArgumentNullException(nameof(PrivateNewWindowRequestedEventArgs.Referrer));
 
 					// == BUG CefBrowser can not use the new ChromiumWebBrowser
@@ -107,7 +126,7 @@ namespace KsWare.KsBrowser {
 					break;
 				}
 				case Uri uri:
-					Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] InitializeNewPresenter {uri}");
+					Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] Initialize Uri");
 					await NavigateToUriAsync(uri);
 					break;
 				default:
@@ -122,7 +141,14 @@ namespace KsWare.KsBrowser {
 		}
 
 		private async Task NavigateToUriAsync(Uri uri) {
+			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] NavigateToUriAsync {uri}");
 			var result = await ChromiumWebBrowser.LoadUrlAsync(uri.AbsoluteUri);
+			if (result.Success) {
+
+			}
+			else {
+				Debug.WriteLine($"{result.HttpStatusCode} {result.ErrorCode}");
+			}
 		}
 
 		private class PrivateNewWindowRequestedEventArgs : EventArgs {

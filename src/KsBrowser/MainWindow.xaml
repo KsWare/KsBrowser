@@ -144,9 +144,12 @@
 				CanMoveTabs="{Binding AllowMoveTabs}"
 				DragWindowWithOneTab="True"
 				IsAddButtonVisible="{Binding ShowAddButton}"
-				AddTabCommand="{Binding AddTabCommand}"
-				CloseTabCommand="{Binding CloseTabCommand}"
-				ReorderTabsCommand="{Binding ReorderTabsCommand}"
+				AddTabCommand="{Binding AddNewTabAction}"
+				CloseTabCommand="{Binding CloseTabAction}"
+				ReorderTabsCommand="{Binding ReorderTabsAction}"
+				PinTabCommand="{Binding PinTabAction}"
+				ContainerItemPreparedForOverride="TabControl_ContainerItemPreparedForOverride"
+				TabDraggedOutsideBonds="TabControl_TabDraggedOutsideBonds"
 				TabTearTriggerDistance="10"
 			>
 

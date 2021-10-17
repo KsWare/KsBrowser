@@ -8,7 +8,7 @@
 	xmlns:controls="clr-namespace:KsWare.Presentation.Controls;assembly=KsWare.Presentation.ChromeTabControl">
     <Application.Resources>
 	 <system:Object x:Key="dummy"/>
-		<ResourceDictionary x:Key="DockingWindow.Resources">
+		<ResourceDictionary x:Key="DockingWindow.ContentTemplates">
 			<DataTemplate DataType="{x:Type local:BrowserTabItemVM}">
 				<TextBlock Text="TEST"></TextBlock>
 			</DataTemplate>

@@ -4,9 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -116,11 +114,11 @@ namespace KsWare.Presentation.Controls {
 		// }
 
 		private bool UseDockingWindow(Point position, ChromeTabItemVM draggedTab) {
-			var win = DockingWindows.FirstOrDefault(x => x.DataContext == draggedTab); //check if it's already open
+			var win = DockingWindows.FirstOrDefault(x => x.DragContent == draggedTab); //check if it's already open
 			if (win == null) { //If not, create a new one
 				win = new DockingWindow {
 					Title = draggedTab?.Title ?? "", // Title MUST NOT be null
-					DataContext = draggedTab
+					DragContent = draggedTab
 				};
 				draggedTab.TabHost.MoveTabItem(draggedTab, null);
 				
@@ -131,7 +129,8 @@ namespace KsWare.Presentation.Controls {
 				var scale = VisualTreeHelper.GetDpi(this);
 				win.Left = position.X / scale.DpiScaleX - win.Width / 2;
 				win.Top = position.Y / scale.DpiScaleY - 10;
-
+				win.Width = 600;
+				win.Height = 400;
 				win.Show();
 			}
 			else{
@@ -176,7 +175,7 @@ namespace KsWare.Presentation.Controls {
 
 		//We use this to keep track of where the window is on the screen, so we can dock it later
 		private void DockingWindow_LocationChanged(object sender, EventArgs e) {
-			var win = (Window)sender;
+			var win = (DockingWindow)sender;
 			if (!win.IsLoaded) return;
 
 			var absoluteScreenPos = WinApi.GetCursorPos();
@@ -186,7 +185,7 @@ namespace KsWare.Presentation.Controls {
 			else Debug.WriteLine($"Found C:{absoluteScreenPos} W:{rect}");
 
 			if (windowUnder != null && windowUnder.Equals(this)) {
-				if (TryDockWindow(absoluteScreenPos, (ChromeTabItemVM)win.DataContext)) {
+				if (TryDockWindow(absoluteScreenPos, (ChromeTabItemVM)win.DragContent)) {
 					win.Close();
 				}
 			}

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Windows.Threading;
 using JetBrains.Annotations;
 using KsWare.KsBrowser.Tools;
 using KsWare.Presentation;
@@ -41,7 +42,10 @@ namespace KsWare.KsBrowser {
 		/// <inheritdoc />
 		protected override void OnActivated() {
 			base.OnActivated();
-			if(!_isContentInitialized) InitializeContent();;
+			if (!_isContentInitialized) {
+				_isContentInitialized = true;
+				Dispatcher.BeginInvoke(DispatcherPriority.Normal, InitializeContent);
+			}
 		}
 
 		private void InitializeContent() {
