@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Interop;
 
 namespace KsWare.Presentation.Utilities {
@@ -97,9 +98,19 @@ namespace KsWare.Presentation.Utilities {
 			SetWindowPos(hWnd, IntPtr.Zero, (int)winRect.X, (int)winRect.Y, 0, 0, move);
 		}
 
+		// Mouse.LeftButton==MouseButtonState.Pressed works only in window client area (WPF issue)
+		public static bool IsMouseLeftButtonPressed => (GetKeyState(VK_LBUTTON) & KEY_PRESSED) != 0;
+
 		#endregion 
 
 		#region private
+
+		private const ushort KEY_TOGGLED = 0x1;
+		private const ushort KEY_PRESSED = 0x8000;
+		private const int VK_LBUTTON = 0x01;
+
+		[DllImport("USER32.dll")]
+		static extern ushort GetKeyState(int nVirtKey);
 
 		private static Rect CreateRect(RECT rect) {
 			return new Rect(

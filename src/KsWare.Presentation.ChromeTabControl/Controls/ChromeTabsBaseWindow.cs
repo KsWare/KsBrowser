@@ -26,12 +26,13 @@ namespace KsWare.Presentation.Controls {
 		protected static readonly List<DockingWindow> DockingWindows = new List<DockingWindow>();
 		protected static readonly List<ChromeTabsBaseWindow> ChromeTabsWindows = new List<ChromeTabsBaseWindow>();
 
-		private ChromeTabControl _tabControl;
 		private DragData _dragData;
-		private ContentPresenter _tmpItemPresenter;
-		private ChromeTabItemVM _draggedTabViewModel;
 
 		protected ChromeTabsBaseWindow() {
+			ChromeTabsWindows.Add(this);
+			Closed += OnClosed;
+			Loaded += OnLoaded;
+			LocationChanged += OnLocationChanged;
 		}
 
 		public new ChromeTabsBaseWindowVM DataContext { get => (ChromeTabsBaseWindowVM)base.DataContext; set => base.DataContext = value; }
@@ -43,58 +44,57 @@ namespace KsWare.Presentation.Controls {
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		protected void TabControl_TabDraggedOutsideBonds(object sender, TabDragEventArgs e) {
-			_tabControl = (ChromeTabControl)sender;
-			_draggedTabViewModel = (ChromeTabItemVM)e.Tab;
-			_draggedTabViewModel.View = (ChromeTabItem)_tabControl.ItemContainerGenerator.ContainerFromItem(_draggedTabViewModel);
-			var p = VisualTreeHelper.GetParent(_draggedTabViewModel.View);
-			var itemHolder = FindVisualTreeElement<Panel>(_tabControl, "PART_ItemsHolder");
-			var contentPresenter = FindContentPresenter(itemHolder, _draggedTabViewModel);
-			if (TryDragTabToWindow(e.CursorPosition, _draggedTabViewModel)) {
+			if (TryDragTabToWindow(e.CursorPosition, (ChromeTabItemVM)e.Tab)) {
 				//Set Handled to true to tell the tab control that we have dragged the tab to a window, and the tab should be closed.
 				e.Handled = true;
 			}
 		}
 
 		protected void TabControl_ContainerItemPreparedForOverride(object sender, ContainerOverrideEventArgs e) {
-			_tabControl = (ChromeTabControl)sender;
 			e.Handled = true;
 			if (e.TabItem != null && e.Model is ChromeTabItemVM viewModel) {
 				e.TabItem.IsPinned = viewModel.IsPinned;
 			}
 		}
 
-		protected bool TryDockWindow(Point absoluteScreenPos, ChromeTabItemVM tabItemViewModel, ChromeTabsBaseWindow window) {
-			var position = _tabControl.PointFromScreen(absoluteScreenPos);
+		protected void TryDockTo(ChromeTabsBaseWindow window, Point absoluteScreenPos, ChromeTabItemVM tabItemViewModel) {
+			// var scale = WinApi.GetDpiForMonitorFromPoint(absoluteScreenPos);
+			// absoluteScreenPos = new Point(absoluteScreenPos.X * scale.DpiScaleX, absoluteScreenPos.Y * scale.DpiScaleY);
+			var newTabControl = FindTabControl(window);
+			var position = newTabControl.PointFromScreen(absoluteScreenPos);
 			//Hit test against the tab control
-			if (_tabControl.InputHitTest(position) is FrameworkElement element) {
-				////test if the mouse is over the tab panel or a tab item.
-				if (CanInsertTabItem(element)) {
-					if (tabItemViewModel.TabHost == null) { // from DockingWindow
-						//TabBase dockedWindowVM = (TabBase)win.DataContext;
-						DataContext.TabItems.Add(tabItemViewModel); //TODO TryDockWindow => VM 
-						DataContext.CurrentTabItem = tabItemViewModel;
-						//We run this method on the tab control for it to grab the tab and position it at the mouse, ready to move again.
-						_tabControl.GrabTab(tabItemViewModel);
-						return true;
-					}
-					else {
-						var oldTabControl = Tools.FindTabControl(window);
-						var itemsHolder = FindVisualTreeElement<Panel>(oldTabControl, "PART_ItemsHolder");
-						var itemPresenter = FindContentPresenter(itemsHolder, tabItemViewModel);
-						itemsHolder.Children.Remove(itemPresenter);
-						var newItemsHolder=FindVisualTreeElement<Panel>(FindTabControl(this), "PART_ItemsHolder");
-						newItemsHolder.Children.Add(itemPresenter);
-						tabItemViewModel.TabHost.RemoveTabItem(tabItemViewModel);
-						((IProvideTabHostVM)this.DataContext).TabHost.AddTabItem(tabItemViewModel,-1,null);
-						DataContext.CurrentTabItem = tabItemViewModel;
-						window.Close();
-						//We run this method on the tab control for it to grab the tab and position it at the mouse, ready to move again.
-						_tabControl.GrabTab(tabItemViewModel);
-					}
+			if (!(newTabControl.InputHitTest(position) is FrameworkElement element)) return;
+			////test if the mouse is over the tab panel or a tab item.
+			if (!CanInsertTabItem(element)) return;
 
-				}
-			}
-			return false;
+			var myItemsHolder = FindItemsHolder(this);
+			var itemPresenter = FindContentPresenter(myItemsHolder, tabItemViewModel);
+			myItemsHolder.Children.Remove(itemPresenter);
+			var newItemsHolder=FindItemsHolder(window);
+			newItemsHolder.Children.Add(itemPresenter);
+			tabItemViewModel.TabHost.RemoveTabItem(tabItemViewModel);
+			((IProvideTabHostVM)window.DataContext).TabHost.AddTabItem(tabItemViewModel, -1, null);
+			window.DataContext.CurrentTabItem = tabItemViewModel;
+			Close();
+			//We run this method on the tab control for it to grab the tab and position it at the mouse, ready to move again.
+			newTabControl.GrabTab(tabItemViewModel);
+		}
+
+		protected void TryDockWindow(Point absoluteScreenPos, DockingWindow dockingWindow) {
+			//DockingWindow
+			var tabItemViewModel = dockingWindow.DragData.TabItemViewModel;
+			var tabControl = FindTabControl(this);
+			var position = tabControl.PointFromScreen(absoluteScreenPos);
+			//Hit test against the tab control
+			if (!(tabControl.InputHitTest(position) is FrameworkElement element)) return;
+			////test if the mouse is over the tab panel or a tab item.
+			if (!CanInsertTabItem(element)) return;
+			//TabBase dockedWindowVM = (TabBase)win.DataContext;
+			DataContext.TabItems.Add(tabItemViewModel); //TODO TryDockWindow => VM 
+			DataContext.CurrentTabItem = tabItemViewModel;
+			//We run this method on the tab control for it to grab the tab and position it at the mouse, ready to move again.
+			tabControl.GrabTab(tabItemViewModel);
+			dockingWindow.Close();
 		}
 
 		protected bool TryDragTabToWindow(Point position, ChromeTabItemVM draggedTab) {
@@ -104,50 +104,37 @@ namespace KsWare.Presentation.Controls {
 			if (draggedTab.IsPinned)
 				return false;  //We don't want pinned tabs to be draggable either.
 
-			// return UseDockingWindow(position, draggedTab);
-			return UseChromeTabsWindow(position, draggedTab);
-		}
-
-		private bool UseChromeTabsWindow(Point position, ChromeTabItemVM draggedTabViewModel) {
-			var newTabsWindow = (ChromeTabsBaseWindow)null;
-			if (newTabsWindow == null) { //If not, create a new one
-				var viewType = this.GetType();
-				var vmType = this.DataContext.GetType();
-
-				newTabsWindow = (ChromeTabsBaseWindow)Activator.CreateInstance(viewType);
-				newTabsWindow.DataContext = (ChromeTabsBaseWindowVM)Activator.CreateInstance(vmType);
-				newTabsWindow._dragData = new DragData {
-					TabItemViewModel = draggedTabViewModel,
-					Position = position
-				};
-				var newTabsWindowTabHost = ((IProvideTabHostVM)newTabsWindow.DataContext).TabHost;
-
-				//draggedTab.TabHost.MoveTabItem(draggedTab, newTabsWindowTabHost);
-				//TODO move ChromeBrowserControl to the new tabitem view
-				// draggedTabViewModel.PrepareParentChange();
-				var itemHolder = FindVisualTreeElement<Panel>(_tabControl, "PART_ItemsHolder");
-				_tmpItemPresenter = FindContentPresenter(itemHolder, draggedTabViewModel);
-				itemHolder.Children.Remove(_tmpItemPresenter);
-				draggedTabViewModel.TabHost.RemoveTabItem(draggedTabViewModel);
-
-				newTabsWindow.Closed += TabsWindow_Closed;
-				newTabsWindow.Loaded += TabsWindow_Loaded;
-				newTabsWindow.LocationChanged += TabsWindow_LocationChanged;
-				var scale = VisualTreeHelper.GetDpi(this);
-				newTabsWindow.Left = position.X / scale.DpiScaleX - newTabsWindow.Width / 2;
-				newTabsWindow.Top = position.Y / scale.DpiScaleY - 10;
-		
-				newTabsWindow.Show();
-			}
-			else{
-				MoveWindow(newTabsWindow, position);
-			}
-		
-			ChromeTabsWindows.Add(newTabsWindow);
+			// DragToNewDockingWindow(position, draggedTab);
+			DragToNewChromeTabsWindow(position, draggedTab);
 			return true;
 		}
 
-		private bool UseDockingWindow(Point position, ChromeTabItemVM draggedTabViewModel) {
+		private void DragToNewChromeTabsWindow(Point screenPosition, ChromeTabItemVM draggedTabViewModel) {
+			var viewType = this.GetType();
+			var vmType = this.DataContext.GetType();
+
+			var myItemsHolder = FindItemsHolder(this);
+			var dragData = new DragData {
+				TabItemViewModel = draggedTabViewModel,
+				Position = screenPosition,
+				ItemPresenter = FindContentPresenter(myItemsHolder, draggedTabViewModel) //will be moved in OnLoaded
+			};
+
+			var newTabsWindow = (ChromeTabsBaseWindow)Activator.CreateInstance(viewType);
+			newTabsWindow.DataContext = (ChromeTabsBaseWindowVM)Activator.CreateInstance(vmType);
+			newTabsWindow._dragData = dragData;
+
+			myItemsHolder.Children.Remove(dragData.ItemPresenter);
+			draggedTabViewModel.TabHost.RemoveTabItem(draggedTabViewModel);
+			var scale = VisualTreeHelper.GetDpi(this);
+			newTabsWindow.Left = screenPosition.X / scale.DpiScaleX - newTabsWindow.Width / 2;
+			newTabsWindow.Top = screenPosition.Y / scale.DpiScaleY - 10;
+	
+			newTabsWindow.Show();
+			// finish drop on ==> OnLoaded()
+		}
+
+		private void DragToNewDockingWindow(Point position, ChromeTabItemVM draggedTabViewModel) {
 			const double width = 600;
 			var scale = VisualTreeHelper.GetDpi(this);
 			var dockingWindow = DockingWindows.FirstOrDefault(x => x.DragData?.TabItemViewModel == draggedTabViewModel); //check if it's already open
@@ -176,22 +163,18 @@ namespace KsWare.Presentation.Controls {
 			}
 
 			DockingWindows.Add(dockingWindow);
-			return true;
 		}
 
-		private void TabsWindow_Loaded(object sender, RoutedEventArgs e) {
-			var tabsWindow = (ChromeTabsBaseWindow)sender;
-			tabsWindow.Loaded -= TabsWindow_Loaded;
+		private void OnLoaded(object sender, RoutedEventArgs e) {
+			Loaded -= OnLoaded;
+			if(_dragData==null) return;
 
-			// var draggedTabViewModel = (ChromeTabItemVM)e.Tab;
-			// var draggedTabItem = _tabControl.ItemContainerGenerator.ContainerFromItem(draggedTabViewModel);
-			var tabControl = FindTabControl(tabsWindow);
-			var itemHolder = FindVisualTreeElement<Panel>(tabControl, "PART_ItemsHolder");
-			itemHolder.Children.Add(_tmpItemPresenter);
-			tabsWindow.DataContext.TabHost.AddTabItem(_draggedTabViewModel,0,null);
+			var itemHolder = FindItemsHolder(this);
+			itemHolder.Children.Add(_dragData.ItemPresenter);
+			DataContext.TabHost.AddTabItem(_dragData.TabItemViewModel, 0, null);
 			
-			var cursorPosition = tabsWindow._dragData.Position;
-			MoveWindow(tabsWindow, cursorPosition);
+			var cursorPosition = _dragData.Position;
+			MoveWindow(this, cursorPosition);
 		}
 
 		private void MoveWindow(ChromeTabsBaseWindow tabsWindow, Point pt) {
@@ -212,27 +195,24 @@ namespace KsWare.Presentation.Controls {
 			}));
 		}
 
-		private void TabsWindow_LocationChanged(object sender, EventArgs e) {
-			//We use this to keep track of where the window is on the screen, so we can dock it later
-
-			var tabsWindow = (ChromeTabsBaseWindow)sender;
-			if (!tabsWindow.IsLoaded) return;
-			if(tabsWindow.DataContext.TabHost.CountTabItems!=1) return;
-
+		private void OnLocationChanged(object sender, EventArgs e) {
+			//We use this to keep track of where the window is on the screen, so we can try to dock it
+			var lmb = System.Windows.Input.Mouse.LeftButton;
+			if(!WinApi.IsMouseLeftButtonPressed)
+				return;
+			if(!IsLoaded) 
+				return;
+			if(DataContext.TabHost.CountTabItems != 1) 
+				return;
 			var absoluteScreenPos = WinApi.GetCursorPos();
-			var windowUnder = FindWindowUnderThisAt(tabsWindow, absoluteScreenPos);
-
-			if (windowUnder != null && windowUnder.Equals(this)) {
-				if (TryDockWindow(absoluteScreenPos, tabsWindow._dragData.TabItemViewModel, tabsWindow)) {
-					tabsWindow.Close();
-				}
-			}
+			if (!(FindWindowUnderThisAt(this, absoluteScreenPos) is ChromeTabsBaseWindow windowUnder)) 
+				return;
+			TryDockTo(windowUnder, absoluteScreenPos, _dragData.TabItemViewModel);
 		}
 
-		private void TabsWindow_Closed(object sender, EventArgs e) {
-			//remove the window from the open windows collection when it is closed.
-			var dockingWindow = (ChromeTabsBaseWindow)sender;
-			ChromeTabsWindows.Remove(dockingWindow);
+		private void OnClosed(object sender, EventArgs e) {
+			Closed -= OnClosed;
+			ChromeTabsWindows.Remove(this);
 		}
 
 		private void DockingWindow_Loaded(object sender, RoutedEventArgs e) {
@@ -323,18 +303,13 @@ namespace KsWare.Presentation.Controls {
 		
 		private void DockingWindow_LocationChanged(object sender, EventArgs e) {
 			//We use this to keep track of where the window is on the screen, so we can dock it later
-
+			if(Mouse.LeftButton==MouseButtonState.Released) return;
 			var dockingWindow = (DockingWindow)sender;
 			if (!dockingWindow.IsLoaded) return;
-
 			var absoluteScreenPos = WinApi.GetCursorPos();
 			var windowUnder = FindWindowUnderThisAt(dockingWindow, absoluteScreenPos);
-
-			if (windowUnder != null && windowUnder.Equals(this)) {
-				if (TryDockWindow(absoluteScreenPos, dockingWindow.DragData.TabItemViewModel, null)) {
-					dockingWindow.Close();
-				}
-			}
+			if (windowUnder == null) return;
+			TryDockWindow(absoluteScreenPos, dockingWindow);
 		}
 
 		protected bool CanInsertTabItem(FrameworkElement element) {

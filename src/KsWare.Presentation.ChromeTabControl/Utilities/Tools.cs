@@ -7,11 +7,16 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using ChromeTabs;
+using KsWare.Presentation.Controls;
 using KsWare.Presentation.ViewModels;
 
 namespace KsWare.Presentation.Utilities {
 
 	internal static class Tools {
+
+		public static Panel FindItemsHolder(ChromeTabsBaseWindow window) {
+			return FindVisualTreeElement<Panel>(FindTabControl(window), "PART_ItemsHolder");
+		}
 
 		public static T FindVisualTreeElement<T>(DependencyObject parent) where T:FrameworkElement{
 			var children = VisualTreeHelper_GetChildren(parent);

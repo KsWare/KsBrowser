@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Controls;
 using KsWare.Presentation.ViewModels;
 
 namespace KsWare.Presentation.Controls {
@@ -37,6 +38,7 @@ namespace KsWare.Presentation.Controls {
 		public ChromeTabItemVM TabItemViewModel { get; set; }
 		public Point Position { get; set; }
 		public bool IsDragMove { get; set; }
+		public ContentPresenter ItemPresenter { get; set; }
 	}
 }
 // https://blog.magnusmontin.net/2013/03/16/how-to-create-a-custom-window-in-wpf/comment-page-1/
