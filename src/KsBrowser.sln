@@ -22,7 +22,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KsWare.Presentation.ChromeT
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChromeTabsDemo", "ChromeTabsDemo\ChromeTabsDemo.csproj", "{E1771533-DF0E-455B-AF0E-F14EB9C87A4B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KsWare.Presentation.ChromeTabControl.Tests", "KsWare.Presentation.ChromeTabControl.Tests\KsWare.Presentation.ChromeTabControl.Tests.csproj", "{4343D903-57BF-44D8-9C45-FD470B3A8398}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KsWare.Presentation.ChromeTabControl.Tests", "KsWare.Presentation.ChromeTabControl.Tests\KsWare.Presentation.ChromeTabControl.Tests.csproj", "{4343D903-57BF-44D8-9C45-FD470B3A8398}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitorTestApp", "MonitorTestApp\MonitorTestApp.csproj", "{4FA1AEEB-AFC7-450E-965E-CE0D4C66A05C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,6 +52,10 @@ Global
 		{4343D903-57BF-44D8-9C45-FD470B3A8398}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4343D903-57BF-44D8-9C45-FD470B3A8398}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4343D903-57BF-44D8-9C45-FD470B3A8398}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FA1AEEB-AFC7-450E-965E-CE0D4C66A05C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FA1AEEB-AFC7-450E-965E-CE0D4C66A05C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FA1AEEB-AFC7-450E-965E-CE0D4C66A05C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FA1AEEB-AFC7-450E-965E-CE0D4C66A05C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

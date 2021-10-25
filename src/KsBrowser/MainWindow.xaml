@@ -76,6 +76,16 @@
 						<ContentPresenter Content="{TemplateBinding SelectedContent}"/>
 					</Grid>
 					<Grid x:Name="PART_ItemsHolder" Grid.Row="1" Visibility="{TemplateBinding TabPersistBehavior, Converter={StaticResource TabPersistBehaviorToItemHolderVisibilityConverter}}"/>
+					<Grid Grid.Row="1" DataContext="{TemplateBinding SelectedContent}">
+						<ItemsControl ItemsSource="{Binding WebContentPresenter.MessageOverlays}">
+							<ItemsControl.ItemsPanel>
+								<ItemsPanelTemplate>
+									<Grid IsItemsHost="True"/>
+								</ItemsPanelTemplate>
+							</ItemsControl.ItemsPanel>
+						</ItemsControl>
+						<ContentPresenter Content="{Binding WebContentPresenter.ErrorPresenter}"/>
+					</Grid>
 				</Grid>
 			</ControlTemplate>
 
@@ -130,6 +140,7 @@
 					</HierarchicalDataTemplate>
 				</TreeView.ItemTemplate>
 			</TreeView>
+
 			<chromeTabs:ChromeTabControl 
 				x:Name="TabControl" 
 				Template="{DynamicResource ChromeTabControlTemplate}" 
@@ -151,14 +162,8 @@
 				ContainerItemPreparedForOverride="TabControl_ContainerItemPreparedForOverride"
 				TabDraggedOutsideBonds="TabControl_TabDraggedOutsideBonds"
 				TabTearTriggerDistance="10"
-			>
+			/>
 
-			    <!-- <ksc:DocumentTabControl.NewTabButtonTemplate> -->
-				   <!--  <ControlTemplate TargetType="Button"> -->
-					  <!--   <Button x:Name="NewTabButton" Content="Ê" FontFamily="Wingdings 2" MinWidth="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}" Command="{Binding NewTabCommand}" Margin="0 2 0 -1"/> -->
-				   <!--  </ControlTemplate> -->
-			    <!-- </ksc:DocumentTabControl.NewTabButtonTemplate> -->
-	        </chromeTabs:ChromeTabControl>
 		</DockPanel>
     </DockPanel>
 </controls1:ChromeTabsBaseWindow>

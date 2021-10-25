@@ -46,8 +46,6 @@ namespace KsWare.KsBrowser {
 		public DownloadManagerVM DownloadManager { get; [UsedImplicitly] private set; }
 		public CookieManagerVM CookieManager { get; [UsedImplicitly] private set; }
 		public CoreControllerVM Controller { get; [UsedImplicitly] private set; }
-		
-		public Dictionary<string, IObjectVM> Modules { get; }= new Dictionary<string, IObjectVM>();
 
 		protected override async void DoNavigate(object parameter) {
 			var uri = await CommonTools.EnsureUrlAsync($"{parameter}");

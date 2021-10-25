@@ -14,7 +14,7 @@
 						<ContentPresenter
 							x:Name="ContentControl"
 							Visibility="Visible"
-							Content="{TemplateBinding DragContent}">
+							Content="{Binding DragData.TabItemViewModel, RelativeSource={RelativeSource TemplatedParent}}">
 							<!-- <ContentPresenter.Triggers> -->
 							<!-- 	<EventTrigger RoutedEvent="Loaded"> -->
 							<!-- 		<EventTrigger.EnterActions> -->

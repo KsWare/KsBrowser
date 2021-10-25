@@ -1,16 +1,26 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using CefSharp;
 using CefSharp.Wpf;
+using JetBrains.Annotations;
 using KsWare.KsBrowser.Base;
 using KsWare.KsBrowser.CefSpecific;
+using KsWare.KsBrowser.Modules;
+using KsWare.KsBrowser.Modules.CefModules;
+using KsWare.KsBrowser.Overlays;
 using KsWare.KsBrowser.Tools;
 using KsWare.Presentation;
 using KsWare.Presentation.Controls;
+using KsWare.Presentation.ViewModelFramework;
+using EventManager = KsWare.Presentation.EventManager;
 
 namespace KsWare.KsBrowser {
 
@@ -23,9 +33,15 @@ namespace KsWare.KsBrowser {
 
 			// NavigateBackCommand = initialize later
 			// NavigateForwardCommand = initialize later
+
+			// Modules.Add("Test", new TestModuleVM());
+			Modules.Add("Audio", new AudioManagerVM());
 		}
 
 		public ChromiumWebBrowser ChromiumWebBrowser { get => Fields.GetValue<ChromiumWebBrowser>(); set => Fields.SetValue(value); }
+		public ListVM<BaseMessageOverlayVM> MessageOverlays { get; [UsedImplicitly] private set; }
+		public ErrorPresenterVM ErrorPresenter { get; [UsedImplicitly] private set; }
+		public IAudioManager AudioManager => (IAudioManager)Modules["Audio"];
 
 		/// <inheritdoc />
 		public void NotifyViewChanged(object sender, ValueChangedEventArgs<ChromiumWebBrowser> e) {
@@ -54,8 +70,43 @@ namespace KsWare.KsBrowser {
 				lifeSpanHandler.NewWindowRequested += LifeSpanHandler_NewWindowRequested;
 				ChromiumWebBrowser.LifeSpanHandler = lifeSpanHandler;
 
-				var requestHandler = new MyRequestHandler();
+				var requestHandler = new MyRequestHandler(this);
 				ChromiumWebBrowser.RequestHandler = requestHandler;
+
+				InitModules();
+
+				// ChromiumWebBrowser.AccessibilityHandler;
+				// ChromiumWebBrowser.BrowserSettings.Plugins;
+				// ChromiumWebBrowser.AudioHandler.;		OK
+				// ChromiumWebBrowser.DialogHandler;
+				// ChromiumWebBrowser.DisplayHandler;
+				// ChromiumWebBrowser.DownloadHandler;
+				// ChromiumWebBrowser.DragHandler;
+				// ChromiumWebBrowser.FindHandler;
+				// ChromiumWebBrowser.FocusHandler;
+				// ChromiumWebBrowser.FrameHandler;
+				// ChromiumWebBrowser.JavascriptObjectRepository;
+				// ChromiumWebBrowser.JsDialogHandler;
+				// ChromiumWebBrowser.JavascriptMessageReceived;
+				// ChromiumWebBrowser.KeyboardHandler;
+				// ChromiumWebBrowser.WpfKeyboardHandler;
+				// ChromiumWebBrowser.LoadHandler;
+				// ChromiumWebBrowser.MenuHandler;
+				// ChromiumWebBrowser.RenderHandler;
+				// ChromiumWebBrowser.RenderProcessMessageHandler;
+				// ChromiumWebBrowser.RequestHandler;
+				// ChromiumWebBrowser.ResourceRequestHandlerFactory;
+				// ChromiumWebBrowser.WebBrowser;
+			}
+		}
+
+		private void InitModules() {
+			// WebView2 can be null, this is intended
+			foreach (var adapter in Children.OfType<CefModuleBaseVM>()) {
+				adapter.Init(this, ChromiumWebBrowser);
+			}
+			foreach (var adapter in Modules.Values.OfType<CefModuleBaseVM>()) {
+				adapter.Init(this, ChromiumWebBrowser);
 			}
 		}
 

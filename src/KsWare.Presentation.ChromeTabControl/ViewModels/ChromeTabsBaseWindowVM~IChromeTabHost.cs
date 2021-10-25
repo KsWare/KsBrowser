@@ -76,5 +76,14 @@ namespace KsWare.Presentation.ViewModels {
 			TabItems.Insert(newPosition,tabItem);
 			CurrentTabItem = tabItem;
 		}
+
+		[Bindable(false)]
+		public int CountTabItems => TabItems.Count;
+
+		/// <inheritdoc />
+		public void RemoveTabItem(ChromeTabItemVM tabItem) {
+			if (tabItem.TabHost == this) tabItem.TabHost = null;
+			TabItems.Remove(tabItem);
+		}
 	}
 }

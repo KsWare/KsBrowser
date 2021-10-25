@@ -6,13 +6,21 @@ using System.Windows;
 using System.Windows.Documents;
 using CefSharp;
 using CefSharp.Handler;
+using KsWare.KsBrowser.Overlays;
 
 namespace KsWare.KsBrowser.CefSpecific {
 
 	public class MyRequestHandler : RequestHandler {
 
+		private readonly CefSharpControllerVM _webContentPresenter;
+
+		/// <inheritdoc />
+		public MyRequestHandler(CefSharpControllerVM webContentPresenter) {
+			_webContentPresenter = webContentPresenter;
+		}
+
 		public List<string> AllowCertificateErrorOneTime { get; } = new List<string>();
-		public List<string> AllowCertificateErrorForHost { get; } = new List<string>(){"ksware.de"};
+		public List<string> AllowCertificateErrorForHost { get; } = new List<string>();
 
 		public string CertificateErrorTextTemplate =
 			@"One or more of the certificates of this website are invalid, so we cannot guarantee their authenticity. This happens if the owner of the website has not updated the certificate in time or if it is a fake website created by fraudsters. If you visit such a website, the risk of attack increases.
@@ -33,7 +41,7 @@ I know the risk and would like to continue.";
 			//Example #1
 			//Return true and call IRequestCallback.Continue() at a later time to continue or cancel the request.
 			//In this instance we'll use a Task, typically you'd invoke a call to the UI Thread and display a Dialog to the user
-			Task.Run(() => {
+			Task.Run(async() => {
 				//NOTE: When executing the callback in an async fashion need to check to see if it's disposed
 				if (!callback.IsDisposed) {
 					using (callback) {
@@ -48,8 +56,11 @@ I know the risk and would like to continue.";
 							callback.Continue(true);
 							return;
 						}
-						
-						if (MessageBox.Show(CertificateErrorTextTemplate.Replace("{WebAddress}",requestUrl).Replace("{ErrorCode}",$"{errorCode}"), "Certificate Error", MessageBoxButton.YesNo,
+
+						var overlay = new MessagePresenterVM(_webContentPresenter.MessageOverlays);
+						if (await overlay.Show(
+							CertificateErrorTextTemplate.Replace("{WebAddress}",requestUrl).Replace("{ErrorCode}",$"{errorCode}"), 
+							"Certificate Error", MessageBoxButton.YesNo,
 							MessageBoxImage.Stop, MessageBoxResult.No) == MessageBoxResult.Yes) {
 							callback.Continue(true);
 							return;

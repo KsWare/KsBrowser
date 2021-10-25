@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Windows;
+using KsWare.Presentation.ViewModels;
 
 namespace KsWare.Presentation.Controls {
 
 	public class DockingWindow : Window {
 
-		public static readonly DependencyProperty DragContentProperty = DependencyProperty.Register(
-			"DragContent", typeof(object), typeof(DockingWindow), new PropertyMetadata(default(object)));
+		public static readonly DependencyProperty DragDataProperty = DependencyProperty.Register(
+			"DragData", typeof(DragData), typeof(DockingWindow), new PropertyMetadata(default(DragData)));
+
+		public DragData DragData {
+			get => (DragData)GetValue(DragDataProperty);
+			set => SetValue(DragDataProperty, value);
+		}
 
 		public static event EventHandler WindowCreated;
 		
@@ -22,11 +28,15 @@ namespace KsWare.Presentation.Controls {
 			WindowCreated?.Invoke(this, EventArgs.Empty);
 		}
 
-		public object DragContent {
-			get => (object)GetValue(DragContentProperty);
-			set => SetValue(DragContentProperty, value);
-		}
+		
 
+	}
+
+	public class DragData {
+
+		public ChromeTabItemVM TabItemViewModel { get; set; }
+		public Point Position { get; set; }
+		public bool IsDragMove { get; set; }
 	}
 }
 // https://blog.magnusmontin.net/2013/03/16/how-to-create-a-custom-window-in-wpf/comment-page-1/

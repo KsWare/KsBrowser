@@ -1,11 +1,12 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using JetBrains.Annotations;
 using KsWare.Presentation.ViewModelFramework;
 
 namespace KsWare.Presentation.ViewModels {
 
-	public abstract partial class ChromeTabsBaseWindowVM : WindowVM, IChromeTabHostVM {
+	public abstract partial class ChromeTabsBaseWindowVM : WindowVM, IChromeTabHostVM, IProvideTabHostVM {
 
 		/// <inheritdoc />
 		public ChromeTabsBaseWindowVM() {
@@ -39,7 +40,8 @@ namespace KsWare.Presentation.ViewModels {
 		}
 
 		protected virtual void DoCloseTab(object parameter) {
-			CloseTabItem((ChromeTabItemVM)parameter);
+			if(parameter is ChromeTabItemVM vm) CloseTabItem(vm);
+			else Debug.WriteLine($"DoCloseTab {parameter}"); // {{DisconnectedItem}}
 		}
 
 		protected virtual void DoReorderTabs() {
@@ -54,6 +56,10 @@ namespace KsWare.Presentation.ViewModels {
 			// B) add empty tab
 			// DoNewTab();
 		}
+
+		/// <inheritdoc />
+		// implements IProvideChromeTabHostVM.TabHost
+		public virtual IChromeTabHostVM TabHost => this;
 	}
 
 }

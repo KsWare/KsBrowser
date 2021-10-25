@@ -12,6 +12,7 @@ using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media;
+using ChromeTabs;
 using JetBrains.Annotations;
 using KsWare.Presentation.Controls;
 using KsWare.Presentation.ViewModelFramework;
@@ -23,13 +24,13 @@ namespace KsWare.Presentation.ViewModels {
 		/// <inheritdoc />
 		public ChromeTabItemVM() {
 			RegisterChildren(() => this);
-			Fields[nameof(ParentTab)].ValueChangedEvent.add = (d, e) => OnParentTabChanged(e);
+			// Fields[nameof(ParentTab)].ValueChangedEvent.add = (d, e) => OnParentTabChanged(e);//< DEACTIVATED. managing the three for dragging between windows is currently not supported.
 			Fields[nameof(TabHost)].ValueChangedEvent.add = (d, e) => OnTabHostChanged(e);
 		}
 
-		protected ChromeTabItemVM(IChromeTabHostVM tabHost) : this() {
-			TabHost = tabHost;
-		}
+		// protected ChromeTabItemVM(IChromeTabHostVM tabHost) : this() {
+		// 	TabHost = tabHost;
+		// }
 
 		public int TabNumber { get => Fields.GetValue<int>(); set => Fields.SetValue(value); }
 		
@@ -53,10 +54,14 @@ namespace KsWare.Presentation.ViewModels {
 
 		public IInputElement CommandTarget { get => Fields.GetValue<IInputElement>(); set => Fields.SetValue(value); }
 
+		[Obsolete("DEACTIVATED. managing the three for dragging between windows is currently not supported.", true)]
 		public RefListVM<ChromeTabItemVM> SubTabs { get; [UsedImplicitly] private set; }
 
+		[Obsolete("DEACTIVATED. managing the three for dragging between windows is currently not supported.", true)]
 		[Hierarchy(HierarchyType.Reference)]
 		public ChromeTabItemVM ParentTab { get => Fields.GetValue<ChromeTabItemVM>(); set => Fields.SetValue(value); }
+
+		internal ChromeTabItem View { get; set; }
 
 		/// <summary>
 		/// Called when <see cref="TabHost"/> property changed.

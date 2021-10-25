@@ -1,8 +1,9 @@
-﻿using Microsoft.Web.WebView2.Core;
+﻿using KsWare.KsBrowser.Modules;
+using Microsoft.Web.WebView2.Core;
 
 namespace KsWare.KsBrowser.WebView2Modules {
 
-	public class AudioManagerVM : CoreWebView2AdapterVM {
+	public class AudioManagerVM : CoreWebView2AdapterVM, IAudioManager {
 
 		public void Init(CoreWebView2 coreWebView2, WebView2ControllerVM tab) {
 			base.Init(tab, coreWebView2);

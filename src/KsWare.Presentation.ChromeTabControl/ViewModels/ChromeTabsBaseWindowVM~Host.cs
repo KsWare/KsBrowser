@@ -59,6 +59,7 @@ namespace KsWare.Presentation.ViewModels {
 			EventManager.Raise<EventHandler<TabItemAddedEventArgs>, TabItemAddedEventArgs>(LazyWeakEventStore,
 				nameof(TabItemAddedEvent),
 				new Lazy<TabItemAddedEventArgs>(() => new TabItemAddedEventArgs(tabItem)));
+			tabItem.TabHost = this;
 		}
 
 		/// <summary>
@@ -73,6 +74,8 @@ namespace KsWare.Presentation.ViewModels {
 			EventManager.Raise<EventHandler<TabItemEventArgs>, TabItemEventArgs>(LazyWeakEventStore,
 				nameof(TabItemRemovedEvent),
 				new Lazy<TabItemEventArgs>(() => new TabItemEventArgs(tabItem)));
+			if(tabItem.TabHost == this) tabItem.TabHost = null; // if no other host assigned, clear TabHost property
+			//TODO manage tabItem.ParentTab?!
 		}
 
 		/// <summary>

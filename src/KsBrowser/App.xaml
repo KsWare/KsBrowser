@@ -5,7 +5,8 @@
 	xmlns:ksv="http://ksware.de/Presentation/ViewFramework"
 	xmlns:local="clr-namespace:KsWare.KsBrowser"
 	xmlns:system="clr-namespace:System;assembly=System.Runtime"
-	xmlns:controls="clr-namespace:KsWare.Presentation.Controls;assembly=KsWare.Presentation.ChromeTabControl">
+	xmlns:controls="clr-namespace:KsWare.Presentation.Controls;assembly=KsWare.Presentation.ChromeTabControl"
+	xmlns:overlays="clr-namespace:KsWare.KsBrowser.Overlays">
     <Application.Resources>
 	 <system:Object x:Key="dummy"/>
 		<ResourceDictionary x:Key="DockingWindow.ContentTemplates">
@@ -13,5 +14,13 @@
 				<TextBlock Text="TEST"></TextBlock>
 			</DataTemplate>
 		</ResourceDictionary>
+		<DataTemplate DataType="{x:Type overlays:MessagePresenterVM}">
+			<overlays:MessagePresenterView/>
+		</DataTemplate>
+	 <DataTemplate DataType="{x:Type overlays:ErrorPresenterVM}">
+		 <overlays:ErrorPresenterView/>
+	 </DataTemplate>
+
+
     </Application.Resources>
 </ksv:ViewModelApplication>

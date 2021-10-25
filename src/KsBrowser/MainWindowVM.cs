@@ -13,7 +13,6 @@ namespace KsWare.KsBrowser {
 		/// <inheritdoc />
 		public MainWindowVM() {
 			RegisterChildren(() => this);
-			Dispatcher.TryBeginInvoke(() => DoAddNewTab(new Uri("http://www.microsoft.de/")));
 		}
 
 		/// <inheritdoc />
@@ -22,13 +21,19 @@ namespace KsWare.KsBrowser {
 			AddNewTabItem(new BrowserTabCreationOptions(uri));
 		}
 
+		internal void OnStartup(Uri[] uris) {
+			foreach (var uri in uris) {
+				DoAddNewTab(uri);
+			}
+		}
+
 		/// <inheritdoc/>
 		public override void AddNewTabItem(ITabItemCreationOptions options) {
 			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] ITabHost.AddNewTabItem options");
 			BrowserTabItemVM newTabItem;
 			if (options is BrowserTabCreationOptions o) {
-				newTabItem = new BrowserTabItemVM(this, o);
-				options.Referrer?.SubTabs.Add(newTabItem);
+				newTabItem = new BrowserTabItemVM(o);
+				// options.Referrer?.SubTabs.Add(newTabItem);//< DEACTIVATED. managing the three for dragging between windows is currently not supported.
 			}
 			else {
 				throw new NotSupportedException();

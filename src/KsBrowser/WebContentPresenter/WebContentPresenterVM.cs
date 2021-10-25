@@ -39,5 +39,7 @@ namespace KsWare.KsBrowser {
 		protected virtual bool CanRefresh() => false;
 
 		public abstract void Initialize(object parameter);
+
+		public Dictionary<string, IObjectVM> Modules { get; } = new Dictionary<string, IObjectVM>();
 	}
 }

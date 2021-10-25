@@ -16,33 +16,31 @@ namespace KsWare.Presentation.Utilities {
 			return p;
 		}
 
-		public static Rect GetMonitorRectFromCursor() {
+		public static Rect GetMonitorRectFromCursor(bool workingArea=false) {
 			var pt = new POINT();
 			if (!WinApi.GetCursorPos(ref pt)) Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
 			var hMonitor = MonitorFromPoint(pt,MONITOR_DEFAULTTONULL);
 			if (hMonitor == IntPtr.Zero) return new Rect();
 			var monitorInfo = new MONITORINFOEX();
 			if(!GetMonitorInfo(hMonitor, monitorInfo)) Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
-			return new Rect(
-				monitorInfo.MonitorArea.Left,
-				monitorInfo.MonitorArea.Top,
-				monitorInfo.MonitorArea.Right-monitorInfo.MonitorArea.Left,
-				monitorInfo.MonitorArea.Bottom - monitorInfo.MonitorArea.Top
-			);
+			return CreateRect(workingArea ? monitorInfo.WorkingArea : monitorInfo.MonitorArea);
 		}
 
-		public static Rect GetMonitorRectFromPoint(Point p) {
+		public static Rect GetMonitorRectFromPoint(Point p, bool workingArea = false) {
 			var pt = new POINT((int)p.X, (int)p.Y);
 			var hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONULL);
 			if (hMonitor == IntPtr.Zero) return new Rect();
 			var monitorInfo = new MONITORINFOEX();
 			if(!GetMonitorInfo(hMonitor, monitorInfo)) Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
-			return new Rect(
-				monitorInfo.MonitorArea.Left,
-				monitorInfo.MonitorArea.Top,
-				monitorInfo.MonitorArea.Right-monitorInfo.MonitorArea.Left,
-				monitorInfo.MonitorArea.Bottom - monitorInfo.MonitorArea.Top
-			);
+			return CreateRect(workingArea ? monitorInfo.WorkingArea : monitorInfo.MonitorArea);
+		}
+
+		public static Rect GetMonitorRectFromWindow(Window window, bool workingArea = false) {
+			var hWnd = new WindowInteropHelper(window).Handle;
+			var hMonitor = MonitorFromWindow(hWnd, MonitorOpts.MONITOR_DEFAULTTONEAREST);
+			var monitorInfo = new MONITORINFOEX();
+			if(!GetMonitorInfo(hMonitor, monitorInfo)) Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+			return CreateRect(workingArea ? monitorInfo.WorkingArea : monitorInfo.MonitorArea);
 		}
 
 		public static DpiScale GetDpiForMonitorFromPoint(Point p) {
@@ -80,6 +78,38 @@ namespace KsWare.Presentation.Utilities {
 			return new Rect(r.Left, r.Top, r.Right - r.Left, r.Bottom - r.Top);
 		}
 
+		public static void ForceWindowOnScreen(Window window) {
+			var hWnd = new WindowInteropHelper(window).Handle;
+			var hMonitor = MonitorFromWindow(hWnd, MonitorOpts.MONITOR_DEFAULTTONEAREST);
+			var monitorInfo = new MONITORINFOEX();
+			if(!GetMonitorInfo(hMonitor, monitorInfo)) Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+			var monRect = CreateRect(monitorInfo.WorkingArea);
+			if(!GetWindowRect(hWnd, out var r)) Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+			var winRect = new Rect(r.Left, r.Top, r.Right - r.Left, r.Bottom - r.Top);
+
+			var x = Math.Min(monRect.Right - winRect.Right, 0);
+			var y = Math.Min(monRect.Bottom - winRect.Bottom, 0);
+			winRect = new Rect(new Point(winRect.X + x, winRect.Y + y), winRect.Size);
+			x = Math.Max(monRect.Left - winRect.Left, 0);
+			y = Math.Max(monRect.Top - winRect.Top, 0);
+			winRect = new Rect(new Point(winRect.X + x, winRect.Y + y), winRect.Size);
+			var move = SetWindowPosFlags.DoNotChangeOwnerZOrder | SetWindowPosFlags.IgnoreResize;
+			SetWindowPos(hWnd, IntPtr.Zero, (int)winRect.X, (int)winRect.Y, 0, 0, move);
+		}
+
+		#endregion 
+
+		#region private
+
+		private static Rect CreateRect(RECT rect) {
+			return new Rect(
+				rect.Left,
+				rect.Top,
+				rect.Right - rect.Left,
+				rect.Bottom - rect.Top
+			);
+		}
+
 		#endregion 
 
 		#region Native
@@ -107,10 +137,10 @@ namespace KsWare.Presentation.Utilities {
 		public const uint GW_HWNDNEXT = 2;
 
 		[DllImport("User32")]
-		public static extern IntPtr GetTopWindow(IntPtr hWnd);
+		internal static extern IntPtr GetTopWindow(IntPtr hWnd);
 
 		[DllImport("User32")]
-		public static extern IntPtr GetWindow(IntPtr hWnd, uint wCmd);
+		internal static extern IntPtr GetWindow(IntPtr hWnd, uint wCmd);
 
 		[DllImport("shcore.dll")]
 		//https://docs.microsoft.com/de-de/windows/win32/api/shellscalingapi/nf-shellscalingapi-getdpiformonitor
@@ -126,7 +156,10 @@ namespace KsWare.Presentation.Utilities {
 		private static extern IntPtr MonitorFromWindow(IntPtr hwnd, MonitorOpts dwFlags);
 
 		[DllImport("user32.dll", SetLastError=true)]
-		static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
+		private static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
+
+		[DllImport("user32.dll", SetLastError=true)]
+		private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, SetWindowPosFlags flags);
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto, Pack = 4)]
 		private class MONITORINFOEX {
@@ -178,6 +211,25 @@ namespace KsWare.Presentation.Utilities {
 			MONITOR_DEFAULTTONULL = 0x00000000,
 			MONITOR_DEFAULTTOPRIMARY = 0x00000001,
 			MONITOR_DEFAULTTONEAREST = 0x00000002,
+		}
+
+		[Flags]
+		private enum SetWindowPosFlags : uint {
+			AsynchronousWindowPosition = 0x4000,
+			DeferErase = 0x2000,
+			DrawFrame = 0x0020,
+			FrameChanged = 0x0020,
+			HideWindow = 0x0080,
+			DoNotActivate = 0x0010,
+			DoNotCopyBits = 0x0100,
+			IgnoreMove = 0x0002,
+			DoNotChangeOwnerZOrder = 0x0200,
+			DoNotRedraw = 0x0008,
+			DoNotReposition = 0x0200,
+			DoNotSendChangingEvent = 0x0400,
+			IgnoreResize = 0x0001,
+			IgnoreZOrder = 0x0004,
+			ShowWindow = 0x0040,
 		}
 
 		#endregion

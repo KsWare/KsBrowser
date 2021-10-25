@@ -14,20 +14,9 @@ namespace KsWare.KsBrowser {
 		private readonly BrowserTabCreationOptions _options;
 		private bool _isContentInitialized;
 
-		public BrowserTabItemVM(IChromeTabHostVM tabHost, BrowserTabCreationOptions options) : base(tabHost)  {
+		public BrowserTabItemVM(BrowserTabCreationOptions options) {
 			_options = options;
-			ParentTab = options?.Referrer;
-			RegisterChildren(() => this);
-
-			WebContentPresenter.NewWindowRequested.add = WebContentPresenter_NewWindowRequested;
-			WebContentPresenter.CloseRequested.add = WebContentPresenter_CloseRequested;
-			
-			FieldBindingOperations.SetBinding(Fields[nameof(Title)], new FieldBinding(WebContentPresenter.Fields[nameof(WebContentPresenter.DocumentTitle)], BindingMode.OneWay));
-		}
-
-		[Obsolete("",true)]
-		public BrowserTabItemVM(IChromeTabHostVM tabHost = null, BrowserTabItemVM referrer = null) : base(tabHost) {
-			ParentTab = referrer;
+			// ParentTab = options?.Referrer;//< DEACTIVATED. managing the three for dragging between windows is currently not supported.
 			RegisterChildren(() => this);
 
 			WebContentPresenter.NewWindowRequested.add = WebContentPresenter_NewWindowRequested;
