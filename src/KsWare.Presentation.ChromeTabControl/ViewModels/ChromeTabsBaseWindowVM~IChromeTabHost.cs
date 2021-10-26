@@ -40,7 +40,7 @@ namespace KsWare.Presentation.ViewModels {
 		#endregion
 
 		/// <inheritdoc />
-		/// Implements <see cref="IChromeTabHostVM.AddNewTabItem"/>
+		/// Implements <see cref="IChromeTabsHostVM.AddNewTabItem"/>
 		public virtual void AddNewTabItem(ITabItemCreationOptions options) {
 			var newTab = new ChromeTabItemVM();
 			OnTabItemCreated(newTab, options);
@@ -62,7 +62,7 @@ namespace KsWare.Presentation.ViewModels {
 		}
 		
 		/// <inheritdoc />
-		public void MoveTabItem(ChromeTabItemVM tabItem, IChromeTabHostVM newHost) {
+		public void MoveTabItem(ChromeTabItemVM tabItem, IChromeTabsHostVM newHost) {
 			var idx = TabItems.IndexOf(tabItem);
 			CurrentTabItem = null;
 			TabItems.RemoveAt(idx);
@@ -71,7 +71,7 @@ namespace KsWare.Presentation.ViewModels {
 		}
 
 		/// <inheritdoc />
-		public void AddTabItem(ChromeTabItemVM tabItem, int newPosition, IChromeTabHostVM oldHost) {
+		public void AddTabItem(ChromeTabItemVM tabItem, int newPosition, IChromeTabsHostVM oldHost) {
 			if (newPosition > TabItems.Count || newPosition < 0) newPosition = TabItems.Count;
 			TabItems.Insert(newPosition,tabItem);
 			CurrentTabItem = tabItem;

@@ -15,7 +15,7 @@ namespace KsWare.Presentation.ViewModels {
 		}
 
 		/// <inheritdoc />
-		void IHandleTabItemNotifications.NotifyAdded(IChromeTabHostVM host) {
+		void IHandleTabItemNotifications.NotifyAdded(IChromeTabsHostVM host) {
 			OnAdded(host);
 		}
 
@@ -40,7 +40,7 @@ namespace KsWare.Presentation.ViewModels {
 		}
 
 		/// <inheritdoc />
-		void IHandleTabItemNotifications.NotifyMoved(IChromeTabHostVM newHost, IChromeTabHostVM oldHost) {
+		void IHandleTabItemNotifications.NotifyMoved(IChromeTabsHostVM newHost, IChromeTabsHostVM oldHost) {
 			OnMoved(newHost, oldHost);
 		}
 

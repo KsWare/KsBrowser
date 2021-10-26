@@ -43,7 +43,7 @@ namespace KsWare.KsBrowser {
 		}
 
 		/// <inheritdoc/>
-		/// Implements <seealso cref="IChromeTabHostVM.CloseTabItem"/>
+		/// Implements <seealso cref="IChromeTabsHostVM.CloseTabItem"/>
 		public override bool CloseTabItem(ChromeTabItemVM tabItemVM) {
 			var dummy = new CancelEventArgs();
 			OnTabItemClosing(tabItemVM, dummy);

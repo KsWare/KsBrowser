@@ -10,7 +10,7 @@ using KsWare.Presentation.ViewModelFramework;
 
 namespace KsWare.Presentation.ViewModels {
 
-	public abstract partial class ChromeTabsBaseWindowVM : WindowVM, IChromeTabHostVM, IProvideTabHostVM {
+	public abstract partial class ChromeTabsBaseWindowVM : WindowVM, IChromeTabsHostVM, IProvideTabHostVM {
 
 		/// <inheritdoc />
 		public ChromeTabsBaseWindowVM() {
@@ -48,7 +48,7 @@ namespace KsWare.Presentation.ViewModels {
 
 		/// <inheritdoc />
 		// implements IProvideChromeTabHostVM.TabHost
-		public virtual IChromeTabHostVM TabHost => this;
+		public virtual IChromeTabsHostVM TabHost => this;
 
 		protected SortDescriptionCollection SortDescriptions => CollectionViewSource.GetDefaultView(TabItems).SortDescriptions;
 
@@ -103,7 +103,7 @@ namespace KsWare.Presentation.ViewModels {
 		}
 
 		//We need to set the TabNumber property on the viewmodels when the item source changes to keep it in sync.
-		void TabItems_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
+		private void TabItems_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
 			if (e.Action == NotifyCollectionChangedAction.Add) {
 				foreach (ChromeTabItemVM tab in e.NewItems) {
 					if (TabItems.Count > 1) {

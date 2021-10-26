@@ -6,12 +6,12 @@ namespace KsWare.Presentation.ViewModels {
 
 		void NotifyCreated();
 		void NotifyCreated(ITabItemCreationOptions options);
-		void NotifyAdded(IChromeTabHostVM host);
+		void NotifyAdded(IChromeTabsHostVM host);
 		void NotifyRemoving(CancelEventArgs e);
 		void NotifyRemoved();
 		void NotifyClosing(CancelEventArgs e);
 		void NotifyClosed();
-		void NotifyMoved(IChromeTabHostVM newHost, IChromeTabHostVM oldHost);
+		void NotifyMoved(IChromeTabsHostVM newHost, IChromeTabsHostVM oldHost);
 		void NotifyActivated();
 		void NotifyDeactivated();
 	}

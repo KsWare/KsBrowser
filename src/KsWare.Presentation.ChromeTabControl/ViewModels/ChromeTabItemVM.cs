@@ -50,7 +50,7 @@ namespace KsWare.Presentation.ViewModels {
 		public object Tag { get => Fields.GetValue<object>(); set => Fields.SetValue(value); }
 
 		[Hierarchy(HierarchyType.Reference)]
-		public IChromeTabHostVM TabHost { get => Fields.GetValue<IChromeTabHostVM>(); set => Fields.SetValue(value); }
+		public IChromeTabsHostVM TabHost { get => Fields.GetValue<IChromeTabsHostVM>(); set => Fields.SetValue(value); }
 
 		public IInputElement CommandTarget { get => Fields.GetValue<IInputElement>(); set => Fields.SetValue(value); }
 
@@ -71,7 +71,7 @@ namespace KsWare.Presentation.ViewModels {
 		}
 
 		/// <summary>
-		/// Called when <see cref="IChromeTabHostVM"/> created this tab.
+		/// Called when <see cref="IChromeTabsHostVM"/> created this tab.
 		/// </summary>
 		/// <param name="options">The <see cref="ITabItemCreationOptions"/>.</param>
 		protected virtual void OnCreated(ITabItemCreationOptions options) { }
@@ -121,7 +121,7 @@ namespace KsWare.Presentation.ViewModels {
 		protected virtual void OnRemoving(CancelEventArgs cancelEventArgs) {
 		}
 
-		protected virtual void OnMoved(IChromeTabHostVM newHost, IChromeTabHostVM oldHost) {
+		protected virtual void OnMoved(IChromeTabsHostVM newHost, IChromeTabsHostVM oldHost) {
 		}
 
 		protected virtual void OnClosed() {
@@ -130,7 +130,7 @@ namespace KsWare.Presentation.ViewModels {
 		protected virtual void OnRemoved() {
 		}
 
-		protected virtual void OnAdded(IChromeTabHostVM host) {
+		protected virtual void OnAdded(IChromeTabsHostVM host) {
 		}
 	}
 
