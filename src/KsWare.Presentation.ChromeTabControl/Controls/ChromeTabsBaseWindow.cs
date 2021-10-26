@@ -197,7 +197,6 @@ namespace KsWare.Presentation.Controls {
 
 		private void OnLocationChanged(object sender, EventArgs e) {
 			//We use this to keep track of where the window is on the screen, so we can try to dock it
-			var lmb = System.Windows.Input.Mouse.LeftButton;
 			if(!WinApi.IsMouseLeftButtonPressed)
 				return;
 			if(!IsLoaded) 

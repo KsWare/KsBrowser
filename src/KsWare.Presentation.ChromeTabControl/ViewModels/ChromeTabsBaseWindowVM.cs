@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
+using System.Windows.Data;
+using ChromeTabs;
 using JetBrains.Annotations;
 using KsWare.Presentation.ViewModelFramework;
 
@@ -14,6 +18,7 @@ namespace KsWare.Presentation.ViewModels {
 			AllowMoveTabs = true;
 			ShowAddButton = true;
 			InitChromeTabsHost();
+			TabItems.CollectionChanged += TabItems_CollectionChanged;
 		}
 
 		/// <summary>
@@ -33,8 +38,12 @@ namespace KsWare.Presentation.ViewModels {
 		public bool ShowAddButton { get => Fields.GetValue<bool>(); set => Fields.SetValue(value); }
 		public ActionVM AddNewTabAction { get; [UsedImplicitly] private set; }
 		public ActionVM CloseTabAction { get; [UsedImplicitly] private set; }
-		public ActionVM ReorderTabsAction { get; [UsedImplicitly] private set; }
+		public ActionVM ReorderTabsAction { get; [UsedImplicitly] private set; } // //since we don't know what kind of objects are bound, so the sorting happens outside with the ReorderTabsCommand.
 		public ActionVM PinTabAction { get; [UsedImplicitly] private set; }
+
+		/// <inheritdoc />
+		// implements IProvideChromeTabHostVM.TabHost
+		public virtual IChromeTabHostVM TabHost => this;
 
 		protected virtual void DoAddNewTab(object parameter) {
 		}
@@ -44,10 +53,37 @@ namespace KsWare.Presentation.ViewModels {
 			else Debug.WriteLine($"DoCloseTab {parameter}"); // {{DisconnectedItem}}
 		}
 
-		protected virtual void DoReorderTabs() {
+		protected virtual void DoReorderTabs(object parameter) {
+			TabReorder reorder = (TabReorder)parameter;
+
+			ICollectionView view = CollectionViewSource.GetDefaultView(TabItems);
+			var from = reorder.FromIndex;
+			var to = reorder.ToIndex;
+			var tabCollection = view.Cast<ChromeTabItemVM>().ToList(); //Get the ordered collection of our tab control
+
+			tabCollection[from].TabNumber = tabCollection[to].TabNumber; //Set the new index of our dragged tab
+
+			if (to > from) {
+				for (var i = from + 1; i <= to; i++) {
+					tabCollection[i]
+						.TabNumber--; //When we increment the tab index, we need to decrement all other tabs.
+				}
+			}
+			else if (from > to) { //when we decrement the tab index
+				for (var i = to; i < from; i++) {
+					tabCollection[i]
+						.TabNumber++; //When we decrement the tab index, we need to increment all other tabs.
+				}
+			}
+
+			view.Refresh(); //Refresh the view to force the sort description to do its work.
 		}
 
 		protected virtual void DoPinTab(object parameter) {
+			ChromeTabItemVM tab = (ChromeTabItemVM)parameter;
+			tab.IsPinned = !tab.IsPinned;
+			ICollectionView view = CollectionViewSource.GetDefaultView(TabItems);
+			view.Refresh();
 		}
 
 		protected virtual void OnLastTabItemClosed() {
@@ -57,9 +93,27 @@ namespace KsWare.Presentation.ViewModels {
 			// DoNewTab();
 		}
 
-		/// <inheritdoc />
-		// implements IProvideChromeTabHostVM.TabHost
-		public virtual IChromeTabHostVM TabHost => this;
+		//We need to set the TabNumber property on the viewmodels when the item source changes to keep it in sync.
+		void TabItems_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
+			if (e.Action == NotifyCollectionChangedAction.Add) {
+				foreach (ChromeTabItemVM tab in e.NewItems) {
+					if (TabItems.Count > 1) {
+						//If the new tab don't have an existing number, we increment one to add it to the end.
+						if (tab.TabNumber == 0)
+							tab.TabNumber = TabItems.OrderBy(x => x.TabNumber).LastOrDefault().TabNumber + 1;
+					}
+				}
+			}
+			else {
+				ICollectionView view = CollectionViewSource.GetDefaultView(TabItems);
+				view.Refresh();
+				var tabCollection = view.Cast<ChromeTabItemVM>().ToList();
+				foreach (var item in tabCollection)
+					item.TabNumber = tabCollection.IndexOf(item);
+			}
+		}
+
+		
 	}
 
 }

@@ -1,5 +1,4 @@
 ﻿using ChromeTabs;
-using Demo.ViewModel;
 using System.Windows;
 using KsWare.Presentation.Controls;
 using KsWare.Presentation.ViewModels;

@@ -1,8 +1,4 @@
-﻿using System.Windows;
-using ChromeTabs;
-using Demo.ViewModel;
-using KsWare.Presentation.Controls;
-using KsWare.Presentation.ViewModels;
+﻿using KsWare.Presentation.Controls;
 
 namespace Demo {
 
@@ -13,15 +9,6 @@ namespace Demo {
 
 		public MainWindow() {
 			InitializeComponent();
-			TabControl.TabDraggedOutsideBonds += TabControl_TabDraggedOutsideBonds;
-		}
-
-		private void BnOpenPinnedTabExample_Click(object sender, RoutedEventArgs e) {
-			new PinnedTabExampleWindow().Show();
-		}
-
-		private void BnOpenCustomStyleExample_Click(object sender, RoutedEventArgs e) {
-			new CustomStyleExampleWindow().Show();
 		}
 	}
 

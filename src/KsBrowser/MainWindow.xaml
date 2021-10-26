@@ -11,8 +11,9 @@
 	xmlns:converters="clr-namespace:ChromeTabs.Converters;assembly=ChromeTabs"
 	xmlns:controls1="clr-namespace:KsWare.Presentation.Controls;assembly=KsWare.Presentation.ChromeTabControl"
 	mc:Ignorable="d"
+	Title="{Binding CurrentTabItem.WebContentPresenter.DocumentTitle}" Height="450" Width="800"
 	d:DataContext="{d:DesignInstance ksBrowser:MainWindowVM, IsDesignTimeCreatable=False}"
-	Title="{Binding CurrentTabItem.WebContentPresenter.DocumentTitle}" Height="450" Width="800">
+	>
 	<Window.Resources>
 		<ResourceDictionary>
 			<ResourceDictionary.MergedDictionaries>

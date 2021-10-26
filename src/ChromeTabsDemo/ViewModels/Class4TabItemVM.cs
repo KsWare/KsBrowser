@@ -2,7 +2,7 @@
 
 using KsWare.Presentation.ViewModels;
 
-namespace Demo.ViewModel {
+namespace Demo.ViewModels {
 
 	public class Class4TabItemVM : ChromeTabItemVM {
 		public string MyStringContent { get; set; }
