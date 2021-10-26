@@ -20,11 +20,10 @@ namespace Demo.ViewModels {
 			TabItems.Add(CreateTabLoremIpsum());
 
 			CurrentTabItem = TabItems.FirstOrDefault();
-			var view = CollectionViewSource.GetDefaultView(TabItems);
 
 			//This sort description is what keeps the source collection sorted, based on tab number. 
-			//You can also use the sort description to manually sort the tabs, based on your own criterias.
-			view.SortDescriptions.Add(new SortDescription("TabNumber", ListSortDirection.Ascending));
+			//You can also use the sort description to manually sort the tabs, based on your own criteria.
+			SortDescriptions.Add(new SortDescription("TabNumber", ListSortDirection.Ascending));
 
 			AllowMoveTabs = true;
 			ShowAddButton = true;

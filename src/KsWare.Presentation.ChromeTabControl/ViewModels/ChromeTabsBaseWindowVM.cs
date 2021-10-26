@@ -19,6 +19,11 @@ namespace KsWare.Presentation.ViewModels {
 			ShowAddButton = true;
 			InitChromeTabsHost();
 			TabItems.CollectionChanged += TabItems_CollectionChanged;
+
+			//This sort description is what keeps the source collection sorted, based on tab number. 
+			//You can also use the sort description to manually sort the tabs, based on your own criteria.
+			SortDescriptions.Add(new SortDescription(nameof(ChromeTabItemVM.IsPinned), ListSortDirection.Descending));
+			SortDescriptions.Add(new SortDescription(nameof(ChromeTabItemVM.TabNumber), ListSortDirection.Ascending));
 		}
 
 		/// <summary>
@@ -45,18 +50,23 @@ namespace KsWare.Presentation.ViewModels {
 		// implements IProvideChromeTabHostVM.TabHost
 		public virtual IChromeTabHostVM TabHost => this;
 
+		protected SortDescriptionCollection SortDescriptions => CollectionViewSource.GetDefaultView(TabItems).SortDescriptions;
+
+		[UsedImplicitly]
 		protected virtual void DoAddNewTab(object parameter) {
 		}
 
+		[UsedImplicitly]
 		protected virtual void DoCloseTab(object parameter) {
-			if(parameter is ChromeTabItemVM vm) CloseTabItem(vm);
+			if (parameter is ChromeTabItemVM vm) CloseTabItem(vm);
 			else Debug.WriteLine($"DoCloseTab {parameter}"); // {{DisconnectedItem}}
 		}
 
+		[UsedImplicitly]
 		protected virtual void DoReorderTabs(object parameter) {
-			TabReorder reorder = (TabReorder)parameter;
+			var reorder = (TabReorder)parameter;
 
-			ICollectionView view = CollectionViewSource.GetDefaultView(TabItems);
+			var view = CollectionViewSource.GetDefaultView(TabItems);
 			var from = reorder.FromIndex;
 			var to = reorder.ToIndex;
 			var tabCollection = view.Cast<ChromeTabItemVM>().ToList(); //Get the ordered collection of our tab control
@@ -65,24 +75,23 @@ namespace KsWare.Presentation.ViewModels {
 
 			if (to > from) {
 				for (var i = from + 1; i <= to; i++) {
-					tabCollection[i]
-						.TabNumber--; //When we increment the tab index, we need to decrement all other tabs.
+					tabCollection[i].TabNumber--; //When we increment the tab index, we need to decrement all other tabs.
 				}
 			}
 			else if (from > to) { //when we decrement the tab index
 				for (var i = to; i < from; i++) {
-					tabCollection[i]
-						.TabNumber++; //When we decrement the tab index, we need to increment all other tabs.
+					tabCollection[i].TabNumber++; //When we decrement the tab index, we need to increment all other tabs.
 				}
 			}
 
 			view.Refresh(); //Refresh the view to force the sort description to do its work.
 		}
 
+		[UsedImplicitly]
 		protected virtual void DoPinTab(object parameter) {
-			ChromeTabItemVM tab = (ChromeTabItemVM)parameter;
+			var tab = (ChromeTabItemVM)parameter;
 			tab.IsPinned = !tab.IsPinned;
-			ICollectionView view = CollectionViewSource.GetDefaultView(TabItems);
+			var view = CollectionViewSource.GetDefaultView(TabItems);
 			view.Refresh();
 		}
 
