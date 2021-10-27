@@ -13,20 +13,25 @@ namespace Demo.ViewModels {
 		
 		public MainWindowVM() {
 			RegisterChildren(()=>this);
+			if(IsInDesignMode) OnStartup();
+
+			//This sort description is what keeps the source collection sorted, based on tab number. 
+			//You can also use the sort description to manually sort the tabs, based on your own criteria
+			SortDescriptions.Clear();
+			SortDescriptions.Add(new SortDescription("TabNumber", ListSortDirection.Ascending));
+
+			AllowMoveTabs = true;
+			ShowAddButton = true;
+		}
+
+		public void OnStartup() {
 			//Adding items to the collection creates a tab
 			TabItems.Add(CreateTab1());
 			TabItems.Add(CreateTab2());
 			TabItems.Add(CreateTab3());
 			TabItems.Add(CreateTabLoremIpsum());
 
-			CurrentTabItem = TabItems.FirstOrDefault();
-
-			//This sort description is what keeps the source collection sorted, based on tab number. 
-			//You can also use the sort description to manually sort the tabs, based on your own criteria.
-			SortDescriptions.Add(new SortDescription("TabNumber", ListSortDirection.Ascending));
-
-			AllowMoveTabs = true;
-			ShowAddButton = true;
+			CurrentTabItem = TabItems.First();
 		}
 
 		public ActionVM ShowPinnedTabExampleAction { get; [UsedImplicitly] private set; }
@@ -34,13 +39,18 @@ namespace Demo.ViewModels {
 
 		[UsedImplicitly]
 		private void DoShowPinnedTabExample() {
-			new PinnedTabExampleWindowVM().Show();
+			var vm = new PinnedTabExampleWindowVM();
+			vm.OnStartup();
+			vm.Show();
 		}
 
 		[UsedImplicitly]
 		private void DoShowCustomStyleExample() {
-			new CustomStyleExampleWindowVM().Show();
+			var vm = new CustomStyleExampleWindowVM();
+			vm.OnStartup();
+			vm.Show();
 		}
+
 	}
 
 }

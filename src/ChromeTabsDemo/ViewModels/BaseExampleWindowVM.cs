@@ -60,9 +60,8 @@ namespace Demo.ViewModels {
 		}
 
 		/// <inheritdoc />
-		public override void AddNewTabItem(ITabItemCreationOptions options) {
-			var r = new Random();
-			var num = r.Next(1, 4);
+		protected override void DoAddNewTab(object parameter) {
+			var num = KsWare.Random.Next(1, 4);
 			ChromeTabItemVM newTab;
 			switch (num) {
 				case 1: newTab = CreateTab1(); break;
@@ -70,11 +69,7 @@ namespace Demo.ViewModels {
 				case 3: newTab = CreateTab3(); break;
 				default: throw new Exception();
 			}
-			//TODO use options and call base.AddNewTabItem(options);
-
-			OnTabItemCreated(newTab, options);
-			TabItems.Add(newTab);
-			CurrentTabItem = newTab;
+			AddNewTabItem(new TabItemCreationOptions(newTab, activate:true));
 		}
 	}
 

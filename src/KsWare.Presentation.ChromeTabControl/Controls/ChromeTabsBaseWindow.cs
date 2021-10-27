@@ -1,8 +1,10 @@
 ﻿// ORIGINAL ChromeTabsDemo\WindowBase.cs
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using KsWare.Presentation.Extensions;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,6 +17,7 @@ using KsWare.Presentation.Utilities;
 using KsWare.Presentation.ViewModels;
 using static System.Windows.PresentationSource;
 using static KsWare.Presentation.Utilities.Tools;
+
 
 namespace KsWare.Presentation.Controls {
 
@@ -69,6 +72,7 @@ namespace KsWare.Presentation.Controls {
 
 			var myItemsHolder = FindItemsHolder(this);
 			var itemPresenter = FindContentPresenter(myItemsHolder, tabItemViewModel);
+			if(itemPresenter == null) /*Upps something has gone wrong */ return;
 			myItemsHolder.Children.Remove(itemPresenter);
 			var newItemsHolder=FindItemsHolder(window);
 			newItemsHolder.Children.Add(itemPresenter);
@@ -180,19 +184,36 @@ namespace KsWare.Presentation.Controls {
 		private void MoveWindow(ChromeTabsBaseWindow tabsWindow, Point pt) {
 			//Use a BeginInvoke to delay the execution slightly, else we can have problems grabbing the newly opened window.
 			Dispatcher.BeginInvoke(new Action(() => {
+				var tabItem = FindFirstTabItem(tabsWindow);
+				var offset = tabItem.TranslatePoint(new Point(tabItem.ActualWidth / 2, tabItem.ActualHeight / 2), tabsWindow);
+
 				tabsWindow.Topmost = true;
 				//We position the window at the mouse position
 				var scale = VisualTreeHelper.GetDpi(this);
-				tabsWindow.Left = pt.X / scale.DpiScaleX - tabsWindow.Width / 2;
-				tabsWindow.Top = pt.Y / scale.DpiScaleY - 10;
+				tabsWindow.Left = pt.X / scale.DpiScaleX - offset.X;
+				tabsWindow.Top = pt.Y / scale.DpiScaleY - offset.Y - SystemParameters.WindowCaptionHeight * scale.DpiScaleY;
 
 				if (Mouse.LeftButton == MouseButtonState.Pressed) {
+					// use actual cursor position
+					pt = WinApi.GetCursorPos();
+					scale = VisualTreeHelper.GetDpi(this);
+					tabsWindow.Left = pt.X / scale.DpiScaleX - offset.X;
+					tabsWindow.Top = pt.Y / scale.DpiScaleY - offset.Y - SystemParameters.WindowCaptionHeight * scale.DpiScaleY;
+
 					tabsWindow._dragData.IsDragMove = true;
 					tabsWindow.DragMove(); //capture the movement to the mouse, so it can be dragged around
 				}
 
 				tabsWindow.Topmost = false;
 			}));
+		}
+
+		private ChromeTabItem FindFirstTabItem(ChromeTabsBaseWindow window) {
+			var tabItemVM = window.DataContext.TabHost.TabItems.GetFirstOrDefault();
+			if (tabItemVM == null) return null;
+			var tabControl = FindTabControl(window);
+			var tabItem = (ChromeTabItem)tabControl.ItemContainerGenerator.ContainerFromItem(tabItemVM);
+			return tabItem;
 		}
 
 		private void OnLocationChanged(object sender, EventArgs e) {

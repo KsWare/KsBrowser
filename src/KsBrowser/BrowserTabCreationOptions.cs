@@ -1,6 +1,5 @@
 ﻿using System;
 using KsWare.Presentation.ViewModels;
-using Microsoft.Web.WebView2.Core;
 
 namespace KsWare.KsBrowser {
 
@@ -21,6 +20,10 @@ namespace KsWare.KsBrowser {
 		public object NewWindowRequest { get; }
 
 		public Uri NavigationUri { get; }
+
+		/// <inheritdoc />
+		public ChromeTabItemVM GetInstance() => throw new NotSupportedException();
+		
 	}
 
 }

@@ -48,14 +48,14 @@
 			AddTabButtonBehavior="OpenNewTab"
 			Background="AliceBlue"
 			SelectedTabBrush="WhiteSmoke"
-			CanMoveTabs="{Binding CanMoveTabs}"
+			CanMoveTabs="{Binding AllowMoveTabs}"
 			DragWindowWithOneTab="True"
+			TabTearTriggerDistance="10"
 			IsAddButtonVisible="{Binding ShowAddButton}"
 			AddTabCommand="{Binding AddNewTabAction}"
 			CloseTabCommand="{Binding CloseTabAction}"
 			ReorderTabsCommand="{Binding ReorderTabsAction}"
 			PinTabCommand="{Binding PinTabAction}"
-			TabTearTriggerDistance="10"
 			TabDraggedOutsideBonds="TabControl_TabDraggedOutsideBonds"
 			ContainerItemPreparedForOverride="TabControl_ContainerItemPreparedForOverride"
 		>
@@ -71,22 +71,23 @@
 							<RowDefinition Height="30" />
 							<RowDefinition Height="*" />
 						</Grid.RowDefinitions>
-						<Border Background="{TemplateBinding Background}"
-								BorderThickness="0,0,0,1"
-								BorderBrush="#FF999999"
-								Grid.Row="0"
-								Padding="10,5,10,0">
-							<ct:ChromeTabPanel IsItemsHost="True"
-											   Background="{TemplateBinding Background}" />
+						<Border 
+							Background="{TemplateBinding Background}"
+							BorderThickness="0,0,0,1"
+							BorderBrush="#FF999999"
+							Grid.Row="0"
+							Padding="10,5,10,0">
+							<ct:ChromeTabPanel IsItemsHost="True" Background="{TemplateBinding Background}" />
 						</Border>
 
 						<Grid Grid.Row="1"
 							  Visibility="{TemplateBinding TabPersistBehavior,Converter={StaticResource TabPersistBehaviorToContentPresenterVisibilityConverter}}">
 							<ContentPresenter Content="{TemplateBinding SelectedContent}" />
 						</Grid>
-						<Grid x:Name="PART_ItemsHolder"
-							  Grid.Row="1"
-							  Visibility="{TemplateBinding TabPersistBehavior,Converter={StaticResource TabPersistBehaviorToItemHolderVisibilityConverter}}" />
+						<Grid 
+							x:Name="PART_ItemsHolder"
+							Grid.Row="1"
+							Visibility="{TemplateBinding TabPersistBehavior,Converter={StaticResource TabPersistBehaviorToItemHolderVisibilityConverter}}" />
 					</Grid>
 				</ControlTemplate>
 			</ct:ChromeTabControl.Template>
@@ -97,8 +98,7 @@
 				<DataTemplate>
 					<Grid Tag="{Binding RelativeSource={RelativeSource AncestorType={x:Type ct:ChromeTabItem}}}">
 
-						<!--<Border BorderBrush="Orange"
-								BorderThickness="1">-->
+						<!--<Border BorderBrush="Orange" BorderThickness="1">-->
 						<StackPanel Orientation="Horizontal" Background="Transparent">
 							<Image Source="{Binding TabIcon}" Stretch="Fill" Margin="5,5,5,5" />
 							<TextBlock Text="{Binding Title}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
@@ -128,49 +128,15 @@
 				</DataTemplate>
 			</ct:ChromeTabControl.ItemTemplate>
 		</ct:ChromeTabControl>
-		<StackPanel 
-			Grid.Row="1"
-			Orientation="Horizontal"
-			VerticalAlignment="Center"
-			HorizontalAlignment="Right"
-		>
-			<Button
-				Content="Add Tab"
-				Margin="5"
-				Command="{Binding AddTabCommand}"
-				HorizontalAlignment="Left"
-				Width="75" />
-			<CheckBox
-				Content="Can add tabs"
-				Margin="5"
-				IsChecked="{Binding AllowAddTabs, Mode=TwoWay}"
-				VerticalAlignment="Center" />
-			<CheckBox
-				Content="Show add button"
-				Margin="5"
-				IsChecked="{Binding ShowAddButton}"
-				VerticalAlignment="Center" />
-			<CheckBox
-				Content="Movable tabs"
-				Margin="5"
-				IsChecked="{Binding AllowMoveTabs}"
-				VerticalAlignment="Center" />
+		<StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right" >
+			<Button Command="{Binding AddNewTabAction}" Content="Add Tab" Margin="5" HorizontalAlignment="Left" Width="75" />
+			<!-- <CheckBox IsChecked="{Binding AllowAddTabs, Mode=TwoWay}" Content="Allow add tabs" Margin="5" VerticalAlignment="Center" /> -->
+			<CheckBox IsChecked="{Binding ShowAddButton}" Content="Show add button" Margin="5" VerticalAlignment="Center" />
+			<CheckBox IsChecked="{Binding AllowMoveTabs}" Content="Movable tabs" Margin="5" VerticalAlignment="Center" />
 		</StackPanel>
-		<StackPanel 
-			Grid.Row="1"
-			Orientation="Horizontal"
-			HorizontalAlignment="Left">
-			<Button
-				Content="Pinned tab example"
-				HorizontalAlignment="Left"
-				Margin="5"
-				Command="{Binding ShowPinnedTabExampleAction}" />
-			<Button
-				Content="Custom style example"
-				HorizontalAlignment="Left"
-				Margin="5"
-				Command="{Binding ShowCustomStyleExampleAction}" />
+		<StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left">
+			<Button Command="{Binding ShowPinnedTabExampleAction}" Content="Pinned tab example" HorizontalAlignment="Left" Margin="5" />
+			<Button Command="{Binding ShowCustomStyleExampleAction}" Content="Custom style example" HorizontalAlignment="Left" Margin="5"/>
 		</StackPanel>
-
 	</Grid>
 </controls:ChromeTabsBaseWindow>

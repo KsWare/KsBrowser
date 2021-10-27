@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -18,6 +19,7 @@ namespace KsWare.Presentation.ViewModels {
 			AllowMoveTabs = true;
 			ShowAddButton = true;
 			InitChromeTabsHost();
+			InitIChromeTabHostVM();
 			TabItems.CollectionChanged += TabItems_CollectionChanged;
 
 			//This sort description is what keeps the source collection sorted, based on tab number. 
@@ -54,6 +56,7 @@ namespace KsWare.Presentation.ViewModels {
 
 		[UsedImplicitly]
 		protected virtual void DoAddNewTab(object parameter) {
+			AddNewTabItem(new TabItemCreationOptions(typeof(ChromeTabItemVM)));
 		}
 
 		[UsedImplicitly]
