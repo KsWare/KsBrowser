@@ -38,25 +38,7 @@
 			</DataTemplate>
 
 			<DataTemplate DataType="{x:Type ksBrowser:BrowserTabItemVM}">
-				<DockPanel>
-					<ListBox ItemsSource="{Binding WebContentPresenter.DownloadManager.DownloadOperations}" DockPanel.Dock="Bottom" >
-						<ListBox.ItemsPanel>
-							<ItemsPanelTemplate>
-								<StackPanel IsItemsHost="True" Orientation="Horizontal"/>
-							</ItemsPanelTemplate>
-						</ListBox.ItemsPanel>
-					</ListBox>
-					<ContentControl Content="{Binding WebContentPresenter}">
-						<ContentControl.Resources>
-							<DataTemplate DataType="{x:Type ksBrowser:WebView2ControllerVM}">
-								<controls:WebView2Controller />
-							</DataTemplate>
-							<DataTemplate DataType="{x:Type ksBrowser:CefSharpControllerVM}">
-								<controls:CefSharpController/>
-							</DataTemplate>
-						</ContentControl.Resources>
-					</ContentControl>
-				</DockPanel>
+				<ksBrowser:BrowserTabItemView/>
 			</DataTemplate>
 
 			<!-- TODO Simplify, so that it is no longer necessary to create a ControlTemplate. -->
@@ -75,18 +57,8 @@
 					</Border>
 					<Grid Grid.Row="1" Visibility="{TemplateBinding TabPersistBehavior, Converter={StaticResource TabPersistBehaviorToContentPresenterVisibilityConverter}}">
 						<ContentPresenter Content="{TemplateBinding SelectedContent}"/>
-					</Grid>
+					</Grid>					
 					<Grid x:Name="PART_ItemsHolder" Grid.Row="1" Visibility="{TemplateBinding TabPersistBehavior, Converter={StaticResource TabPersistBehaviorToItemHolderVisibilityConverter}}"/>
-					<Grid Grid.Row="1" DataContext="{TemplateBinding SelectedContent}">
-						<ItemsControl ItemsSource="{Binding WebContentPresenter.MessageOverlays}">
-							<ItemsControl.ItemsPanel>
-								<ItemsPanelTemplate>
-									<Grid IsItemsHost="True"/>
-								</ItemsPanelTemplate>
-							</ItemsControl.ItemsPanel>
-						</ItemsControl>
-						<ContentPresenter Content="{Binding WebContentPresenter.ErrorPresenter}"/>
-					</Grid>
 				</Grid>
 			</ControlTemplate>
 
@@ -95,7 +67,12 @@
 	<DockPanel>
 		<Menu DockPanel.Dock="Top">
 			<MenuItem Header="_File">
-
+				<MenuItem Header="Downloads..." Command="{Binding CurrentTabItem.WebContentPresenter.DownloadManager.ShowDownloadsAction}"/>
+			</MenuItem>
+			<MenuItem Header="_View">
+				<MenuItem Header="Tab Tree" IsCheckable="True" IsChecked="{Binding IsTabTreeVisible}"/>
+				<MenuItem Header="Web Tools" IsCheckable="True" IsChecked="{Binding CurrentTabItem.WebTools.IsVisible}"/>
+				<!-- Command="{Binding CurrentTabItem.WebTools.ToggleVisibilityAction}" -->
 			</MenuItem>
 			<MenuItem Header="_Tests">
 				<MenuItem Header="Crash Browser" Command="{Binding CurrentTabItem.WebContentPresenter.Modules[Test].CrashBrowserAction}"/>
@@ -134,7 +111,7 @@
 			</TextBox>
 		</DockPanel>
 		<DockPanel>
-			<TreeView DockPanel.Dock="Left" ItemsSource="{Binding TabItems}" ScrollViewer.HorizontalScrollBarVisibility="Auto" Width="200">
+			<TreeView x:Name="TabTree" Visibility="{VisibilityBinding IsTabTreeVisible, TrueVisibleElseCollapsed}" DockPanel.Dock="Left" ItemsSource="{Binding TabItems}" ScrollViewer.HorizontalScrollBarVisibility="Auto" Width="200">
 				<TreeView.ItemTemplate>
 					<HierarchicalDataTemplate DataType="{x:Type ksBrowser:BrowserTabItemVM}" ItemsSource="{Binding SubTabs}">
 						<TextBlock Text="{Binding WebContentPresenter.DocumentTitle}"/>

@@ -33,7 +33,6 @@ namespace KsWare.Presentation.Controls {
 
 		protected ChromeTabsBaseWindow() {
 			ChromeTabsWindows.Add(this);
-			Closed += OnClosed;
 			Loaded += OnLoaded;
 			LocationChanged += OnLocationChanged;
 		}
@@ -79,9 +78,17 @@ namespace KsWare.Presentation.Controls {
 			tabItemViewModel.TabHost.RemoveTabItem(tabItemViewModel);
 			((IProvideTabHostVM)window.DataContext).TabHost.AddTabItem(tabItemViewModel, -1, null);
 			window.DataContext.CurrentTabItem = tabItemViewModel;
+			DebugWrite(newItemsHolder);
 			Close();
 			//We run this method on the tab control for it to grab the tab and position it at the mouse, ready to move again.
 			newTabControl.GrabTab(tabItemViewModel);
+		}
+
+		private void DebugWrite(Panel itemsHolder) {
+			Debug.WriteLine($"---PART_ItemsHolder---");
+			foreach (FrameworkElement child in itemsHolder.Children) {
+				Debug.WriteLine($"  {child.DataContext.GetType().Name}");
+			}
 		}
 
 		protected void TryDockWindow(Point absoluteScreenPos, DockingWindow dockingWindow) {
@@ -108,8 +115,13 @@ namespace KsWare.Presentation.Controls {
 			if (draggedTab.IsPinned)
 				return false;  //We don't want pinned tabs to be draggable either.
 
-			// DragToNewDockingWindow(position, draggedTab);
-			DragToNewChromeTabsWindow(position, draggedTab);
+			if (SupportsItemsHolder(this)) {
+				DragToNewChromeTabsWindow(position, draggedTab);
+			}
+			else {
+				DragToNewDockingWindow(position, draggedTab);
+			}
+			
 			return true;
 		}
 
@@ -118,6 +130,7 @@ namespace KsWare.Presentation.Controls {
 			var vmType = this.DataContext.GetType();
 
 			var myItemsHolder = FindItemsHolder(this);
+			DebugWrite(myItemsHolder);
 			var dragData = new DragData {
 				TabItemViewModel = draggedTabViewModel,
 				Position = screenPosition,
@@ -176,6 +189,7 @@ namespace KsWare.Presentation.Controls {
 			var itemHolder = FindItemsHolder(this);
 			itemHolder.Children.Add(_dragData.ItemPresenter);
 			DataContext.TabHost.AddTabItem(_dragData.TabItemViewModel, 0, null);
+			DebugWrite(itemHolder);
 			
 			var cursorPosition = _dragData.Position;
 			MoveWindow(this, cursorPosition);
@@ -209,7 +223,7 @@ namespace KsWare.Presentation.Controls {
 		}
 
 		private ChromeTabItem FindFirstTabItem(ChromeTabsBaseWindow window) {
-			var tabItemVM = window.DataContext.TabHost.TabItems.GetFirstOrDefault();
+			var tabItemVM = window.DataContext.TabHost.TabItems.FirstOrDefault();
 			if (tabItemVM == null) return null;
 			var tabControl = FindTabControl(window);
 			var tabItem = (ChromeTabItem)tabControl.ItemContainerGenerator.ContainerFromItem(tabItemVM);
@@ -217,7 +231,7 @@ namespace KsWare.Presentation.Controls {
 		}
 
 		private void OnLocationChanged(object sender, EventArgs e) {
-			//We use this to keep track of where the window is on the screen, so we can try to dock it
+			//We use OnLocationChanged to keep track of where the window is on the screen, so we can try to dock it
 			if(!WinApi.IsMouseLeftButtonPressed)
 				return;
 			if(!IsLoaded) 
@@ -227,11 +241,11 @@ namespace KsWare.Presentation.Controls {
 			var absoluteScreenPos = WinApi.GetCursorPos();
 			if (!(FindWindowUnderThisAt(this, absoluteScreenPos) is ChromeTabsBaseWindow windowUnder)) 
 				return;
-			TryDockTo(windowUnder, absoluteScreenPos, _dragData.TabItemViewModel);
+			TryDockTo(windowUnder, absoluteScreenPos, DataContext.TabHost.TabItems.First<ChromeTabItemVM>());
 		}
 
-		private void OnClosed(object sender, EventArgs e) {
-			Closed -= OnClosed;
+		/// <inheritdoc />
+		protected override void OnClosed(EventArgs e) {
 			ChromeTabsWindows.Remove(this);
 		}
 
@@ -252,8 +266,8 @@ namespace KsWare.Presentation.Controls {
 				dockingWindow.Top = pt.Y / scale.DpiScaleY - 10;
 				Debug.WriteLine(DateTime.Now.ToShortTimeString() + " dragging window");
 
-				if (Mouse.LeftButton == MouseButtonState.Pressed) {
-					Mouse.AddMouseUpHandler(dockingWindow, DockingWindow_MouseUp);
+				if (WinApi.IsMouseLeftButtonPressed) {
+					// Mouse.AddMouseUpHandler(dockingWindow, DockingWindow_MouseUp);
 					dockingWindow.DragData.IsDragMove = true;
 					dockingWindow.DragMove(); //capture the movement to the mouse, so it can be dragged around
 				}
@@ -323,7 +337,7 @@ namespace KsWare.Presentation.Controls {
 		
 		private void DockingWindow_LocationChanged(object sender, EventArgs e) {
 			//We use this to keep track of where the window is on the screen, so we can dock it later
-			if(Mouse.LeftButton==MouseButtonState.Released) return;
+			if(!WinApi.IsMouseLeftButtonPressed) return;
 			var dockingWindow = (DockingWindow)sender;
 			if (!dockingWindow.IsLoaded) return;
 			var absoluteScreenPos = WinApi.GetCursorPos();

@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommonServiceLocator" Version="2.0.5" />
+    <PackageReference Include="CommonServiceLocator" Version="2.0.6" />
     <PackageReference Include="KsWare.Presentation" Version="0.21.6-alpha" />
     <PackageReference Include="WPFChromeTabsMVVM" Version="1.3.4.1" />
   </ItemGroup>

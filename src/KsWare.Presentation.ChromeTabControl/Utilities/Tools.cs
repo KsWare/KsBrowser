@@ -14,6 +14,26 @@ namespace KsWare.Presentation.Utilities {
 
 	internal static class Tools {
 
+		private static readonly Dictionary<Type, bool> ItemsHolderSupport = new Dictionary<Type, bool>();
+
+		public static bool SupportsItemsHolder(Window window) {
+			var t = window.GetType();
+			if (ItemsHolderSupport.ContainsKey(t)) return ItemsHolderSupport[t];
+			if (!window.IsLoaded) throw new InvalidOperationException();
+			var tabControl = FindTabControl(window);
+			if (tabControl == null) {
+				ItemsHolderSupport.Add(t, false);
+				return false;
+			}
+			var itemsHolder = FindVisualTreeElement<Panel>(tabControl,"PART_ItemsHolder");
+			if (itemsHolder == null) {
+				ItemsHolderSupport.Add(t, false);
+				return false;
+			}
+			ItemsHolderSupport.Add(t, true);
+			return true;
+		}
+
 		public static Panel FindItemsHolder(ChromeTabsBaseWindow window) {
 			return FindVisualTreeElement<Panel>(FindTabControl(window), "PART_ItemsHolder");
 		}

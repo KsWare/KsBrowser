@@ -15,6 +15,8 @@ namespace KsWare.KsBrowser {
 			RegisterChildren(() => this);
 		}
 
+		public bool IsTabTreeVisible { get => Fields.GetValue<bool>(); set => Fields.SetValue(value); }
+
 		/// <inheritdoc />
 		protected override async void DoAddNewTab(object parameter) {
 			var uri = await CommonTools.EnsureUrlAsync($"{parameter}");

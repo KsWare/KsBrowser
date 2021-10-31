@@ -1,0 +1,38 @@
+﻿<Window 
+	x:Class="KsWare.KsBrowser.Controls.DownloadsWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:local="clr-namespace:KsWare.KsBrowser.Controls"
+	xmlns:modules="clr-namespace:KsWare.KsBrowser.Modules"
+	xmlns:converter="clr-namespace:KsWare.KsBrowser.Converter"
+	xmlns:common="clr-namespace:KsWare.KsBrowser.Modules.Common"
+	mc:Ignorable="d"
+	Title="Downloads" Height="450" Width="800"
+	d:DataContext="{d:DesignInstance modules:IDownloadManagerVM, IsDesignTimeCreatable=False}">
+	<DockPanel>
+		<DockPanel DockPanel.Dock="Top">
+			<Button Content="Pause" Command="{Binding SelectedDownloadOperation.PauseAction, FallbackValue={local:DisabledCommand}}" />
+			<Button Content="Resume" Command="{Binding SelectedDownloadOperation.ResumeAction, FallbackValue={local:DisabledCommand}}" />
+			<Button Content="Cancel" Command="{Binding SelectedDownloadOperation.CancelAction, FallbackValue={local:DisabledCommand}}" />
+		</DockPanel>
+		<ListView ItemsSource="{Binding DownloadOperations}" SelectedItem="{Binding SelectedDownloadOperation}">
+			<ListView.View>
+				<GridView>
+					<GridViewColumn Header="#" DisplayMemberBinding="{Binding Id}"/>
+					<GridViewColumn Header="%">
+						<GridViewColumn.CellTemplate>
+							<DataTemplate DataType="{x:Type common:DownloadOperationVM}">
+								<TextBlock><Run Text="{Binding PercentComplete, StringFormat=F0, Mode=OneWay}"/><Run Text="%"/></TextBlock>
+							</DataTemplate>
+						</GridViewColumn.CellTemplate>
+					</GridViewColumn>
+					<GridViewColumn Header="Left" DisplayMemberBinding="{Binding EstimatedTimeLeft, Converter={converter:TimeLeftConverter}}" />
+					<GridViewColumn Header="FileName" DisplayMemberBinding="{Binding FileName}"/>
+					<GridViewColumn Header="Url" DisplayMemberBinding="{Binding Url}"/>
+				</GridView>
+			</ListView.View>
+		</ListView>
+	</DockPanel>
+</Window>

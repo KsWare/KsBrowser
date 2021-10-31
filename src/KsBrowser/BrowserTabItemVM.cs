@@ -26,7 +26,9 @@ namespace KsWare.KsBrowser {
 		}
 
 		// public WebView2ControllerVM WebContentPresenter { get; [UsedImplicitly] private set; }
+		// public WebView2WebToolsVM WebTools { get; [UsedImplicitly] private set; }
 		public CefSharpControllerVM WebContentPresenter { get; [UsedImplicitly] private set; }
+		public CefSharpWebToolsVM WebTools { get; [UsedImplicitly] private set; }
 
 		/// <inheritdoc />
 		protected override void OnActivated() {

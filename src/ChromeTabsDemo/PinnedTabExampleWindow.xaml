@@ -51,10 +51,8 @@
 					TargetType="{x:Type ct:ChromeTabControl}">
 					<Grid>
 						<Grid.RowDefinitions>
-							<RowDefinition
-								Height="30" />
-							<RowDefinition
-								Height="*" />
+							<RowDefinition Height="30" />
+							<RowDefinition Height="*" />
 						</Grid.RowDefinitions>
 						<Border
 							Background="{TemplateBinding Background}"
@@ -66,8 +64,7 @@
 						</Border>
 						<Grid Grid.Row="1">
 							<Border Background="WhiteSmoke">
-								<ContentPresenter
-									Content="{TemplateBinding SelectedContent}" />
+								<ContentPresenter Content="{TemplateBinding SelectedContent}" />
 							</Border>
 						</Grid>
 					</Grid>

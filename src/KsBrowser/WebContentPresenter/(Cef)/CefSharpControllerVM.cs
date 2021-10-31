@@ -3,16 +3,20 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using CefSharp;
+using CefSharp.Handler;
 using CefSharp.Wpf;
 using JetBrains.Annotations;
 using KsWare.KsBrowser.Base;
 using KsWare.KsBrowser.CefSpecific;
+using KsWare.KsBrowser.Logging;
 using KsWare.KsBrowser.Modules;
 using KsWare.KsBrowser.Modules.CefModules;
 using KsWare.KsBrowser.Overlays;
@@ -24,11 +28,15 @@ using EventManager = KsWare.Presentation.EventManager;
 
 namespace KsWare.KsBrowser {
 
-	public class CefSharpControllerVM : WebContentPresenterVM, IViewControllerVM<ChromiumWebBrowser>  {
+	public class CefSharpControllerVM : WebContentPresenterVM, IViewControllerVM<ChromiumWebBrowser> {
+
+		private readonly Log Log;
+		
 
 		/// <inheritdoc />
 		public CefSharpControllerVM() {
-			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] new CefSharpControllerVM");
+			Log = new Log(this);
+			Log.Method($".ctor");
 			RegisterChildren(() => this);
 
 			// NavigateBackCommand = initialize later
@@ -36,21 +44,28 @@ namespace KsWare.KsBrowser {
 
 			// Modules.Add("Test", new TestModuleVM());
 			Modules.Add("Audio", new AudioManagerVM());
+			LifeSpanHandler.NewWindowRequested += LifeSpanHandler_NewWindowRequested;
 		}
 
 		public ChromiumWebBrowser ChromiumWebBrowser { get => Fields.GetValue<ChromiumWebBrowser>(); set => Fields.SetValue(value); }
 		public ListVM<BaseMessageOverlayVM> MessageOverlays { get; [UsedImplicitly] private set; }
 		public ErrorPresenterVM ErrorPresenter { get; [UsedImplicitly] private set; }
 		public IAudioManager AudioManager => (IAudioManager)Modules["Audio"];
+		public DownloadManagerVM DownloadManager { get; [UsedImplicitly] private set; }
+		public MyLifeSpanHandler LifeSpanHandler { get; private set; } = new MyLifeSpanHandler();
+		public ContextMenuHandlerVM ContextMenuHandler { get; [UsedImplicitly] private set; }
 
 		/// <inheritdoc />
-		public void NotifyViewChanged(object sender, ValueChangedEventArgs<ChromiumWebBrowser> e) {
-			if (e.OldValue != null) {
-
+		void IViewControllerVM<ChromiumWebBrowser>.NotifyViewChanged(object sender, ValueChangedEventArgs<ChromiumWebBrowser> e) {
+			Log.Method($"");
+			if (ChromiumWebBrowser != null && e.NewValue != ChromiumWebBrowser) {
+				throw new NotSupportedException();
+				// clean old
+				ChromiumWebBrowser = null;
 			}
 
-			if (e.NewValue != null) {
-				Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] {nameof(CefSharpControllerVM)}.{nameof(NotifyViewChanged)}");
+			if (ChromiumWebBrowser == null && e.NewValue != null) {
+				Log.Message("initialize ChromiumWebBrowser");
 				ChromiumWebBrowser = e.NewValue;
 
 				NavigateBackCommand = ChromiumWebBrowser.BackCommand; OnPropertyChanged(nameof(NavigateBackCommand));
@@ -63,24 +78,23 @@ namespace KsWare.KsBrowser {
 				ChromiumWebBrowser.LoadError += ChromiumWebBrowser_LoadError;
 				ChromiumWebBrowser.LoadingStateChanged += ChromiumWebBrowser_LoadingStateChanged;
 
+				// ChromiumWebBrowser.ConsoleMessage;
+				// ChromiumWebBrowser.StatusMessage;
+				// ChromiumWebBrowser.JavascriptMessageReceived;
+				// ChromiumWebBrowser.FrameLoadStart;
+				// ChromiumWebBrowser.FrameLoadEnd;
+				// ChromiumWebBrowser.VirtualKeyboardRequested;
 
-				var lifeSpanHandler = new MyLifeSpanHandler();
-				lifeSpanHandler.AfterCreated += LifeSpanHandler_AfterCreated;
-				lifeSpanHandler.BeforeClose += LifeSpanHandler_BeforeClose;
-				lifeSpanHandler.NewWindowRequested += LifeSpanHandler_NewWindowRequested;
-				ChromiumWebBrowser.LifeSpanHandler = lifeSpanHandler;
-
-				var requestHandler = new MyRequestHandler(this);
-				ChromiumWebBrowser.RequestHandler = requestHandler;
-
-				InitModules();
-
+				ChromiumWebBrowser.LifeSpanHandler = LifeSpanHandler;
+				ChromiumWebBrowser.RequestHandler = new MyRequestHandler(this);
+				ChromiumWebBrowser.MenuHandler = ContextMenuHandler;
+				
 				// ChromiumWebBrowser.AccessibilityHandler;
 				// ChromiumWebBrowser.BrowserSettings.Plugins;
 				// ChromiumWebBrowser.AudioHandler.;		OK
 				// ChromiumWebBrowser.DialogHandler;
 				// ChromiumWebBrowser.DisplayHandler;
-				// ChromiumWebBrowser.DownloadHandler;
+				// ChromiumWebBrowser.DownloadHandler = DownloadManager;
 				// ChromiumWebBrowser.DragHandler;
 				// ChromiumWebBrowser.FindHandler;
 				// ChromiumWebBrowser.FocusHandler;
@@ -97,11 +111,13 @@ namespace KsWare.KsBrowser {
 				// ChromiumWebBrowser.RequestHandler;
 				// ChromiumWebBrowser.ResourceRequestHandlerFactory;
 				// ChromiumWebBrowser.WebBrowser;
+
+				InitModules();
 			}
 		}
 
 		private void InitModules() {
-			// WebView2 can be null, this is intended
+			// ChromiumWebBrowser can be null, this is intended
 			foreach (var adapter in Children.OfType<CefModuleBaseVM>()) {
 				adapter.Init(this, ChromiumWebBrowser);
 			}
@@ -111,12 +127,12 @@ namespace KsWare.KsBrowser {
 		}
 
 		private void ChromiumWebBrowser_LoadingStateChanged(object sender, CefSharp.LoadingStateChangedEventArgs e) {
-			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] ChromiumWebBrowser_LoadingStateChanged {e.IsLoading}");
+			Log.Method($"{e.IsLoading}");
 		}
 
 		private void ChromiumWebBrowser_LoadError(object sender, CefSharp.LoadErrorEventArgs e) {
-			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] ChromiumWebBrowser_LoadError {e.ErrorCode} {e.ErrorText}");
-			ChromiumWebBrowser.LoadHtml("<html>" + e.ErrorText + "</html>", e.FailedUrl, Encoding.UTF8, true);
+			Log.Method($"{e.ErrorCode} {e.ErrorText} {e.Frame.Name} {e.FailedUrl}");
+			//TODO ChromiumWebBrowser.LoadHtml("<html>" + e.ErrorText + "</html>", e.FailedUrl, Encoding.UTF8, true);
 		}
 
 		/// <remarks>
@@ -131,36 +147,29 @@ namespace KsWare.KsBrowser {
 						new NewWindowRequestedEventArgs(new PrivateNewWindowRequestedEventArgs(e, this)))));
 		}
 
-		private void LifeSpanHandler_BeforeClose(object sender, BeforeCloseEventArgs e) {
-			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] LifeSpanHandler_BeforeClose");
-		}
-
-		private void LifeSpanHandler_AfterCreated(object sender, AfterCreatedEventArgs e) {
-			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] LifeSpanHandler_AfterCreated");
-		}
-
 		private void ChromiumWebBrowser_IsBrowserInitializedChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e) {
-			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] ChromiumWebBrowser_IsBrowserInitializedChanged");
+			Log.Method($"{e.NewValue}");
 		}
 
 		private void ChromiumWebBrowser_TitleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e) {
-			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] ChromiumWebBrowser_TitleChanged");
+			Log.Method($"{e.NewValue}");
 			DocumentTitle = e.NewValue as string;
 		}
 
 		private void ChromiumWebBrowser_AddressChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e) {
-			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] ChromiumWebBrowser_AddressChanged");
+			Log.Method($"{e.NewValue}");
 			Address = e.NewValue as string;
 			Source =  Uri.TryCreate(Address,UriKind.RelativeOrAbsolute, out var uri) ? uri : new Uri("about:unknown");
 		}
 
 		/// <inheritdoc />
 		public override async void Initialize(object parameter) {
+			Log.Method();
 			switch (parameter) {
 				case null:
 					throw new ArgumentNullException(nameof(parameter));
 				case PrivateNewWindowRequestedEventArgs args: {
-					Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] Initialize NewWindowRequested");
+					Log.Message($"NewWindowRequested");
 					if (args.Referrer == null) throw new ArgumentNullException(nameof(PrivateNewWindowRequestedEventArgs.Referrer));
 
 					// == BUG CefBrowser can not use the new ChromiumWebBrowser
@@ -177,7 +186,8 @@ namespace KsWare.KsBrowser {
 					break;
 				}
 				case Uri uri:
-					Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] Initialize Uri");
+					Log.Message($"Uri");
+					await LifeSpanHandler.WaitForBrowserCreatedAsync();
 					await NavigateToUriAsync(uri);
 					break;
 				default:
@@ -192,7 +202,7 @@ namespace KsWare.KsBrowser {
 		}
 
 		private async Task NavigateToUriAsync(Uri uri) {
-			Debug.WriteLine($"[{Environment.CurrentManagedThreadId,2}] NavigateToUriAsync {uri}");
+			Log.Method($"{uri}");
 			var result = await ChromiumWebBrowser.LoadUrlAsync(uri.AbsoluteUri);
 			if (result.Success) {
 
@@ -200,6 +210,12 @@ namespace KsWare.KsBrowser {
 			else {
 				Debug.WriteLine($"{result.HttpStatusCode} {result.ErrorCode}");
 			}
+		}
+
+		public void MoveToNewWindow(DockingWindow window) {
+			var parent = (UserControl)ChromiumWebBrowser.Parent;
+			parent.Content = null;
+			window.Content = ChromiumWebBrowser;
 		}
 
 		private class PrivateNewWindowRequestedEventArgs : EventArgs {
@@ -212,11 +228,6 @@ namespace KsWare.KsBrowser {
 			internal CefSharpControllerVM Referrer { get; }
 		}
 
-		public void MoveToNewWindow(DockingWindow window) {
-			var parent = (UserControl)ChromiumWebBrowser.Parent;
-			parent.Content = null;
-			window.Content = ChromiumWebBrowser;
-		}
 	}
 
 }

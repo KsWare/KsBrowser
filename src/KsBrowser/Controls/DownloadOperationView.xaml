@@ -5,14 +5,25 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
 	xmlns:converter="clr-namespace:KsWare.KsBrowser.Converter"
 	xmlns:modules="clr-namespace:KsWare.KsBrowser.WebView2Modules"
+	xmlns:common="clr-namespace:KsWare.KsBrowser.Modules.Common"
 	mc:Ignorable="d">
 
-	<DataTemplate DataType="{x:Type modules:DownloadOperationVM}">
-		<StackPanel x:Name="RootPanel" Width="200">
-			<TextBlock Text="{Binding FileName}" FontWeight="Bold" Opacity="0.7"/>
-			<TextBlock x:Name="Progress"><Run Text="{Binding PercentComplete}"/><Run Text=" "/><Run Text="{Binding EstimatedTimeLeft, StringFormat=g}"/></TextBlock>
-			<TextBlock x:Name="Completed"><Run Text="{Binding EstimatedTotalTime, StringFormat=g}"/></TextBlock>
-			<TextBlock x:Name="InterruptReason" Text="{Binding InterruptReason, Converter={converter:InterruptReasonConverter}}" ToolTip="{Binding InterruptReason, Converter={converter:InterruptReasonConverter}}" TextTrimming="CharacterEllipsis"/>
+	<DataTemplate DataType="{x:Type common:DownloadOperationVM}">
+		<StackPanel x:Name="RootPanel" Width="200" Visibility="{VisibilityBinding IsVisible, TrueVisibleElseCollapsed}">
+			<TextBlock Text="{Binding FileName}" FontWeight="Bold" Opacity="0.7">
+				<TextBlock.ToolTip>
+					<TextBlock><Run Text="Size: "/><Run Text="{Binding SizeValue, StringFormat=F0, Mode=OneWay}"/><Run Text="{Binding SizeUnit, Mode=OneWay}"/></TextBlock>
+				</TextBlock.ToolTip>
+			</TextBlock>
+			<TextBlock x:Name="Progress"><Run Text="{Binding PercentComplete, StringFormat=F0, Mode=OneWay}"/><Run Text="% "/><Run Text="{Binding EstimatedTimeLeft, Converter={converter:TimeLeftConverter}, Mode=OneWay}"/></TextBlock>
+			<TextBlock x:Name="Completed"><Run Text="{Binding EstimatedTotalTime, StringFormat=g, Mode=OneWay}"/></TextBlock>
+			<TextBlock x:Name="InterruptReason" Text="{Binding InterruptReason, Mode=OneWay}" ToolTip="{Binding InterruptReason, Mode=OneWay}" TextTrimming="CharacterEllipsis"/>
+			<DockPanel LastChildFill="False">
+				<Button Command="{Binding PauseAction}" Content="Pause"/>
+				<Button Command="{Binding ResumeAction}" Content="Resume"/>
+				<Button Command="{Binding CancelAction}" Content="Cancel"/>
+				<Button Command="{Binding HideAction}" Content="Close" ToolTip="Hides this download. This will not cancel the download."/>
+			</DockPanel>
 		</StackPanel>
 		<DataTemplate.Triggers>
 			<DataTrigger Binding="{Binding State}" Value="InProgress">

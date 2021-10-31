@@ -7,9 +7,25 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:ksv="http://ksware.de/Presentation/ViewFramework" 
 	xmlns:demo="clr-namespace:Demo" 
-	xmlns:viewModels="clr-namespace:Demo.ViewModels"
+	xmlns:viewModels="clr-namespace:Demo.ViewModels" 
+	xmlns:userControls="clr-namespace:Demo.UserControls"
 	mc:Ignorable="d" 
 >
     <Application.Resources>
+	    <!--These DataTemplates load the correct user control based on the viewmodel-->
+
+	    <DataTemplate DataType="{x:Type viewModels:Class1TabItemVM}">
+		    <userControls:UserControl1 />
+	    </DataTemplate>
+	    <DataTemplate DataType="{x:Type viewModels:Class2TabItemVM}">
+		    <userControls:UserControl2 />
+	    </DataTemplate>
+	    <DataTemplate DataType="{x:Type viewModels:Class3TabItemVM}">
+		    <userControls:UserControl3 />
+	    </DataTemplate>
+	    <DataTemplate DataType="{x:Type viewModels:Class4TabItemVM}">
+		    <userControls:UserControl4 />
+	    </DataTemplate>
+
     </Application.Resources>
 </ksv:ViewModelApplication>

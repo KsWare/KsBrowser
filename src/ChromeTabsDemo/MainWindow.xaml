@@ -18,18 +18,6 @@
 	Width="700"
 	d:DataContext="{d:DesignInstance vm:MainWindowVM, IsDesignTimeCreatable=true}"
 >
-	<!--These DataTemplates load the correct user control based on the viewmodel-->
-	<Window.Resources>
-		<DataTemplate DataType="{x:Type vm:Class1TabItemVM}">
-			<usercontrols:UserControl1 />
-		</DataTemplate>
-		<DataTemplate DataType="{x:Type vm:Class2TabItemVM}">
-			<usercontrols:UserControl2 />
-		</DataTemplate>
-		<DataTemplate DataType="{x:Type vm:Class3TabItemVM}">
-			<usercontrols:UserControl3 />
-		</DataTemplate>
-	</Window.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="*" />

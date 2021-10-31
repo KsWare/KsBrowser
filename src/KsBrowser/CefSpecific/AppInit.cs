@@ -14,7 +14,8 @@ namespace KsWare.KsBrowser.CefSpecific {
 #endif
 			var settings = new CefSettings() {
 				//By default CefSharp will use an in-memory cache, you need to specify a Cache Folder to persist data
-				CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CefSharp\\Cache")
+				CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CefSharp\\Cache"),
+				RemoteDebuggingPort = 8080
 			};
 
 			//Example of setting a command line argument

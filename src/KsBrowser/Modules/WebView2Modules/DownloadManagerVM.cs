@@ -1,21 +1,40 @@
 ﻿using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
+using KsWare.KsBrowser.Controls;
+using KsWare.KsBrowser.Modules;
+using KsWare.KsBrowser.Modules.Common;
+using KsWare.Presentation;
 using KsWare.Presentation.ViewModelFramework;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Win32;
 
 namespace KsWare.KsBrowser.WebView2Modules {
 
-	public class DownloadManagerVM : CoreWebView2AdapterVM {
+	public class DownloadManagerVM : CoreWebView2AdapterVM, IDownloadManagerVM {
 
 		/// <inheritdoc />
 		public DownloadManagerVM() {
 			RegisterChildren(() => this);
 		}
 
+		public ActionVM ShowDownloadsAction { get; private set; }
+
+		void DoShowDownloads() {
+			new DownloadsWindow{DataContext = this}.Show(); //TODO use DownloadsWindowVM
+		}
+
+		/// <inheritdoc/>
 		public ListVM<DownloadOperationVM> DownloadOperations { get; [UsedImplicitly] private set; }
-		public bool AskForDownloadFolder { get; set; } = false;
+		
+		/// <inheritdoc/>
+		[Hierarchy(HierarchyType.Reference)]
+		public DownloadOperationVM SelectedDownloadOperation { get => Fields.GetValue<DownloadOperationVM>(); set => Fields.SetValue(value); }
+		
+		/// <inheritdoc/>
+		public bool ShowFileDialog { get; set; } = false;
+		
+		/// <inheritdoc/>
 		public string DownloadFolder { get; set; }
 
 		/// <inheritdoc />
@@ -49,7 +68,7 @@ namespace KsWare.KsBrowser.WebView2Modules {
 			// Uri	"blob:https://visualstudio.microsoft.com/47039fd1-2c29-4db7-ba3e-46c1248d5674"	string
 			CoreWebView2Deferral deferral = null;
 
-			if (AskForDownloadFolder) {
+			if (ShowFileDialog) {
 				//TODO MUST NOT BLOCK! convert ty async operation
 				var dlg = new SaveFileDialog {
 					Filter = "All Files (*.*)|*.*",
@@ -73,7 +92,7 @@ namespace KsWare.KsBrowser.WebView2Modules {
 				e.ResultFilePath = n;
 			}
 
-			var downLoadOperation = new DownloadOperationVM(e);
+			var downLoadOperation = new DownloadOperationWebView2VM(e);
 			DownloadOperations.Add(downLoadOperation);
 
 			e.Handled = true;
